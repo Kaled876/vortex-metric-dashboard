@@ -18,7 +18,7 @@
     :root{
         --primary: #2536eb;
         --background: #1a1a1a;
-        --surface: #ffffff;
+        --surface: #26262699;
         --text: #888888;
         --border: #32527b;
     }
@@ -48,12 +48,14 @@
     }
 
     .card{
-        background: var(--border);
+        background: var(--surface);
+        backdrop-filter: blur(10px);
         border: 1px soild var(--border);
         border-radius: 8px;
-        padding: 20px;
+        padding: clamp(10px, 2vw, 20px);
         margin-bottom: 20px;
         box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
     }
 
     .drop-zone{
