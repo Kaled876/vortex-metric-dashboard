@@ -120,16 +120,16 @@
 
         dropZone.addEventListener('dragover', (e) => {
             e.preventDefault();
-            dropZone.style.backgroundColor = '#dbeafe';
+            dropZone.style.backgroundColor = '#fdcc0d';
         });
 
         dropZone.addEventListener('dragleave', () => {
-            dropZone.style.backgroundColor = '#eff6ff';
+            dropZone.style.backgroundColor = '#1a1a1a';
         });
 
         dropZone.addEventListener('drop', (e) => {
             e,preventDefault();
-            dropZone.style.backgroundColor = '#eff8ff';
+            dropZone.style.backgroundColor = '#1a1a1a';
             if(e.dataTransfer.files.length > 0) procesarArchivo(e.dataTransfer.files[0]);
         });
 
