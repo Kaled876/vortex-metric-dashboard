@@ -88,7 +88,7 @@
         <div class="card">
             <div class="drop-zone" id="dropZone">
                 <p><strong>Arrastra tu archivo .CAB</strong> o haz clic para escogerlo</p>
-                <input type="file" id="fileInput" accept=".cab" class="hidden">
+                <input type="file" id="fileInput" accept=".csv" class="hidden">
             </div>
             <p id="statusMessage" style="text-align: center; color: var(--primary);"></p>
         </div>
@@ -144,8 +144,8 @@
         });
 
         async function procesarArchivo(file) {
-            if(!file.name.endsWith('.cab')) {
-                alert('Eso no es un archivo .cab');
+            if(!file.name.endsWith('.csv')) {
+                alert('Eso no es un archivo .csv');
                 return;
             }
 
@@ -154,7 +154,7 @@
             formData.append('file', file);
 
             try {
-                const response = await fetch('http://localhost:8000/api/procesar-cab', {
+                const response = await fetch('http://localhost:8000/api/procesar-csv', {
                     method: 'POST',
                     body: formData
                 });
