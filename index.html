@@ -5,12 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tablero Terapéutico - Tiempos de Reacción</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&family=Space+Grotesk:wght@300..700&display=swap');
         :root{
             --primary: #2536eb;
-            --background: #f8fafc;
+            --background: #05080f;
             --surface: #ffffff;
-            --text: #1e293b;
-            --border: #e2e8f0;
+            --text: #888888;
+            --border: #fdcc0d99;
         }
 
         body{
@@ -28,6 +29,13 @@
 
         header{
             margin-bottom: 24px;
+        }
+
+        .title{
+            font-family: 'Space Grotesk', 'Orbitron', sans-serif;
+            font-size: clamp(1.2rem, 3vw, 2.5rem);
+            font-weight: 700;
+            text-transform: uppercase;
         }
 
         .card{
@@ -63,7 +71,7 @@
 <body>
     <div class="container">
         <header>
-            <h1>Evaluación de Tiempos de Reacción</h1>
+            <h1 class="title">Evaluación de Tiempos de Reacción</h1>
             <p>Añade el archivo .CAB extraído del juego para procesar los resultados por grupo de edad.</p>
         </header>
 
