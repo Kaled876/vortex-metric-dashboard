@@ -1,0 +1,5 @@
+session_ID,user_ID,edad,tiempo_reaccion_ms,acierto
+101,USR_89,14,320,TRUE
+101,USR_89,14,295,TRUE
+102,USR_12,68,540,TRUE
+102,USR_12,68,110,FALSE
