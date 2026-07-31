@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vortex Metric Engine - Analytics Dashboard</title>
+    
+    <!-- Google Fonts: Orbitron -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js (CDN) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        /* SGX TACTICAL UI/UX SYSTEM */
+        body {
+            background-color: #050505;
+            color: #E0E0E0;
+            font-family: 'Orbitron', sans-serif;
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(50, 82, 123, 0.35) 0%, transparent 75%),
+                linear-gradient(to bottom, rgba(5, 5, 5, 0.8), rgba(5, 5, 5, 1));
+            min-height: 100vh;
+        }
+
+        /* Glassmorphism Panel Standard */
+        .sgx-panel {
+            background: rgba(26, 26, 26, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(253, 204, 13, 0.3);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        /* 45-Degree Polygonal Cut Buttons */
+        .sgx-btn {
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+            transition: all 0.3s ease;
+            background: #32527B;
+            color: #FFFFFF;
+            border: none;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .sgx-btn:hover {
+            background: #FDCC0D;
+            color: #050505;
+            box-shadow: 0 0 15px rgba(253, 204, 13, 0.6);
+            cursor: pointer;
+        }
+
+        .sgx-btn-cyan {
+            background: rgba(0, 255, 255, 0.15);
+            border: 1px solid #00FFFF;
+            color: #00FFFF;
+        }
+        .sgx-btn-cyan:hover {
+            background: #00FFFF;
+            color: #050505;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.6);
+        }
+
+        /* Fluid Typography & Neon Glows */
+        .sgx-title {
+            font-size: clamp(1.4rem, 2.5vw, 2.2rem);
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+
+        .sgx-gold-glow {
+            color: #FDCC0D;
+            text-shadow: 0 0 8px rgba(253, 204, 13, 0.6);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1A1A1A;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #32527B;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #FDCC0D;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <!-- HUD CONTAINER -->
+    <div class="max-w-7xl mx-auto space-y-6">
+
+        <!-- HEADER / BRANDING BANNER -->
+        <header class="sgx-panel p-6 rounded-lg flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+                <div class="flex items-center gap-3">
+                    <span class="inline-block w-3 h-3 rounded-full bg-cyan-400 animate-ping"></span>
+                    <h1 class="sgx-title font-black tracking-wider text-white">VORTEX METRIC ENGINE</h1>
+                </div>
+                <p class="text-xs text-gray-400 mt-1 uppercase tracking-widest">
+                    Telemetry & Clinical Reaction Analytics | <span class="text-yellow-400">Spatialgineers SGX Core</span>
+                </p>
+            </div>
+            
+            <div class="flex flex-wrap gap-3 items-center">
+                <input type="file" id="csvFileInput" accept=".csv" class="hidden" onchange="handleFileUpload(event)">
+                <button onclick="document.getElementById('csvFileInput').click()" class="sgx-btn sgx-btn-cyan px-4 py-2 text-xs">
+                    📂 Cargar CSV External
+                </button>
+                <button onclick="loadSimulatedData()" class="sgx-btn px-4 py-2 text-xs">
+                    🔄 Data Demostración
+                </button>
+            </div>
+        </header>
+
+        <!-- TELEMETRY SUMMARY CARDS -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="sgx-panel p-4 rounded-lg">
+                <p class="text-xs text-gray-400 uppercase tracking-wider">Total Pacientes</p>
+                <h3 id="statTotalPatients" class="text-3xl font-extrabold sgx-gold-glow mt-1">0</h3>
+                <p class="text-[10px] text-cyan-400 mt-2">Muestras clínicas activas</p>
+            </div>
+            <div class="sgx-panel p-4 rounded-lg">
+                <p class="text-xs text-gray-400 uppercase tracking-wider">T. Reacción Promedio</p>
+                <h3 id="statAvgReaction" class="text-3xl font-extrabold text-cyan-400 mt-1">0.00s</h3>
+                <p class="text-[10px] text-gray-400 mt-2">Global (Danger Zones)</p>
+            </div>
+            <div class="sgx-panel p-4 rounded-lg">
+                <p class="text-xs text-gray-400 uppercase tracking-wider">Supervivencia Media</p>
+                <h3 id="statAvgSurvival" class="text-3xl font-extrabold text-white mt-1">0.0s</h3>
+                <p class="text-[10px] text-yellow-400 mt-2">Tiempo total de partida</p>
+            </div>
+            <div class="sgx-panel p-4 rounded-lg">
+                <p class="text-xs text-gray-400 uppercase tracking-wider">Eficacia Mult. Velocidad</p>
+                <h3 id="statPeakCategory" class="text-3xl font-extrabold text-yellow-400 mt-1">N/A</h3>
+                <p class="text-[10px] text-cyan-400 mt-2">Categoría con mejor respuesta</p>
+            </div>
+        </section>
+
+        <!-- ANALYTICS CHARTS SECTION -->
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Chart 1: Reaction Time by Age Group -->
+            <div class="sgx-panel p-5 rounded-lg flex flex-col justify-between">
+                <div class="mb-4">
+                    <h2 class="text-sm font-bold text-white uppercase tracking-wider">Tiempo de Reacción por Segmento de Edad</h2>
+                    <p class="text-xs text-gray-400">Comparativa de latencia al salir del Danger Zone (segundos)</p>
+                </div>
+                <div class="relative w-full h-64">
+                    <canvas id="reactionChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Chart 2: Survival Time vs Speed Multiplier -->
+            <div class="sgx-panel p-5 rounded-lg flex flex-col justify-between">
+                <div class="mb-4">
+                    <h2 class="text-sm font-bold text-white uppercase tracking-wider">Supervivencia vs Multiplicador de Dificultad</h2>
+                    <p class="text-xs text-gray-400">Resistencia del sujeto según velocidad incrementada</p>
+                </div>
+                <div class="relative w-full h-64">
+                    <canvas id="survivalChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- DATA TABLE SECTION -->
+        <section class="sgx-panel p-6 rounded-lg">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+                <div>
+                    <h2 class="text-sm font-bold text-white uppercase tracking-wider">Registro Detallado de Telemetría Clīnica</h2>
+                    <p class="text-xs text-gray-400">Data cruda procesada en memoria (Zero-Server Architecture)</p>
+                </div>
+                <!-- Age Filter -->
+                <div class="flex items-center gap-2">
+                    <label for="ageFilter" class="text-xs text-gray-400 uppercase">Filtrar Edad:</label>
+                    <select id="ageFilter" onchange="applyFilters()" class="bg-black border border-yellow-500/40 text-xs text-yellow-400 rounded px-3 py-1.5 focus:outline-none focus:border-yellow-400">
+                        <option value="ALL">Todos los grupos</option>
+                        <option value="Niño">Niño (Velocidad Base x1.2)</option>
+                        <option value="Adulto">Adulto (Velocidad Base x1.0)</option>
+                        <option value="Anciano">Anciano (Velocidad Adaptada x0.7)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-[#32527B]/40 text-cyan-300 uppercase tracking-wider border-b border-cyan-500/30">
+                        <tr>
+                            <th class="p-3">ID / Paciente</th>
+                            <th class="p-3">Categoría Edad</th>
+                            <th class="p-3">Dificultad (Mult)</th>
+                            <th class="p-3">T. Reacción Prom.</th>
+                            <th class="p-3">Mejor Reacción</th>
+                            <th class="p-3">Supervivencia</th>
+                            <th class="p-3">Zonas Superadas</th>
+                        </tr>
+                    </thead>
+                    <tbody id="telemetryTableBody" class="divide-y divide-gray-800 text-gray-300">
+                        <!-- Rows dynamically populated -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- FOOTER / PROTOCOL VERIFICATION -->
+        <footer class="text-center text-[10px] text-gray-500 py-4 border-t border-gray-900">
+            SPATIALGINEERS LLC © 2026 | PROTOCOLO SGX.SYSTEM | VORTEX MATRIX ENGINE
+        </footer>
+
+    </div>
+
+    <!-- DASHBOARD LOGIC -->
+    <script>
+        // DATASET INICIAL SIMULADO (Satisface Requisito 2 y 3)
+        const defaultDataset = [
+            { id: "PAT-001", ageGroup: "Niño", multiplier: 1.2, avgReaction: 0.38, bestReaction: 0.22, survival: 45.2, zones: 12 },
+            { id: "PAT-002", ageGroup: "Niño", multiplier: 1.2, avgReaction: 0.42, bestReaction: 0.25, survival: 38.0, zones: 10 },
+            { id: "PAT-003", ageGroup: "Adulto", multiplier: 1.0, avgReaction: 0.29, bestReaction: 0.18, survival: 62.5, zones: 18 },
+            { id: "PAT-004", ageGroup: "Adulto", multiplier: 1.0, avgReaction: 0.31, bestReaction: 0.19, survival: 58.1, zones: 16 },
+            { id: "PAT-005", ageGroup: "Adulto", multiplier: 1.0, avgReaction: 0.27, bestReaction: 0.16, survival: 71.4, zones: 21 },
+            { id: "PAT-006", ageGroup: "Anciano", multiplier: 0.7, avgReaction: 0.64, bestReaction: 0.48, survival: 28.3, zones: 7 },
+            { id: "PAT-007", ageGroup: "Anciano", multiplier: 0.7, avgReaction: 0.58, bestReaction: 0.41, survival: 33.9, zones: 9 },
+            { id: "PAT-008", ageGroup: "Niño", multiplier: 1.2, avgReaction: 0.35, bestReaction: 0.21, survival: 51.0, zones: 14 }
+        ];
+
+        let activeData = [...defaultDataset];
+        let reactionChartInstance = null;
+        let survivalChartInstance = null;
+
+        // INICIALIZACIÓN
+        window.addEventListener('DOMContentLoaded', () => {
+            initCharts();
+            renderDashboard(activeData);
+        });
+
+        function loadSimulatedData() {
+            activeData = [...defaultDataset];
+            document.getElementById('ageFilter').value = 'ALL';
+            renderDashboard(activeData);
+        }
+
+        // RENDERIZAR VISTAS Y MÉTRICAS
+        function renderDashboard(data) {
+            updateMetrics(data);
+            updateTable(data);
+            updateCharts(data);
+        }
+
+        // CÁLCULO DE TELEMETRÍA ROBUSTA
+        function updateMetrics(data) {
+            if (data.length === 0) {
+                document.getElementById('statTotalPatients').innerText = '0';
+                document.getElementById('statAvgReaction').innerText = '0.00s';
+                document.getElementById('statAvgSurvival').innerText = '0.0s';
+                document.getElementById('statPeakCategory').innerText = 'N/A';
+                return;
+            }
+
+            document.getElementById('statTotalPatients').innerText = data.length;
+
+            const avgReact = data.reduce((acc, curr) => acc + curr.avgReaction, 0) / data.length;
+            document.getElementById('statAvgReaction').innerText = avgReact.toFixed(2) + 's';
+
+            const avgSurv = data.reduce((acc, curr) => acc + curr.survival, 0) / data.length;
+            document.getElementById('statAvgSurvival').innerText = avgSurv.toFixed(1) + 's';
+
+            // Identificar categoría con menor tiempo de reacción medio (mejor desempeño)
+            const categories = ['Niño', 'Adulto', 'Anciano'];
+            let bestCat = 'N/A';
+            let minReact = Infinity;
+
+            categories.forEach(cat => {
+                const catItems = data.filter(d => d.ageGroup === cat);
+                if (catItems.length > 0) {
+                    const catAvg = catItems.reduce((acc, c) => acc + c.avgReaction, 0) / catItems.length;
+                    if (catAvg < minReact) {
+                        minReact = catAvg;
+                        bestCat = cat;
+                    }
+                }
+            });
+
+            document.getElementById('statPeakCategory').innerText = bestCat;
+        }
+
+        // ACTUALIZACIÓN DE TABLA HTML
+        function updateTable(data) {
+            const tbody = document.getElementById('telemetryTableBody');
+            tbody.innerHTML = '';
+
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-[#32527B]/20 transition-colors border-b border-gray-800/50";
+                tr.innerHTML = `
+                    <td class="p-3 font-semibold text-white">${row.id}</td>
+                    <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] ${getAgeBadgeStyle(row.ageGroup)}">${row.ageGroup}</span></td>
+                    <td class="p-3 text-gray-400">x${row.multiplier}</td>
+                    <td class="p-3 text-cyan-400 font-mono">${row.avgReaction.toFixed(2)}s</td>
+                    <td class="p-3 text-yellow-400 font-mono">${row.bestReaction.toFixed(2)}s</td>
+                    <td class="p-3 font-mono">${row.survival.toFixed(1)}s</td>
+                    <td class="p-3 text-gray-300">${row.zones}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function getAgeBadgeStyle(ageGroup) {
+            switch(ageGroup) {
+                case 'Niño': return 'bg-blue-900/60 text-blue-300 border border-blue-500/30';
+                case 'Adulto': return 'bg-yellow-900/60 text-yellow-300 border border-yellow-500/30';
+                case 'Anciano': return 'bg-purple-900/60 text-purple-300 border border-purple-500/30';
+                default: return 'bg-gray-800 text-gray-300';
+            }
+        }
+
+        // FILTRADO DINÁMICO
+        function applyFilters() {
+            const val = document.getElementById('ageFilter').value;
+            let filtered = activeData;
+            if (val !== 'ALL') {
+                filtered = activeData.filter(d => d.ageGroup === val);
+            }
+            renderDashboard(filtered);
+        }
+
+        // PARSER CSV INTERNO (Zero Dependencias)
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                parseCSVData(text);
+            };
+            reader.readAsText(file);
+        }
+
+        function parseCSVData(csvText) {
+            const lines = csvText.split('\n').filter(l => l.trim() !== '');
+            if (lines.length < 2) return;
+
+            const parsed = [];
+            for (let i = 1; i < lines.length; i++) {
+                const cols = lines[i].split(',').map(c => c.trim());
+                if (cols.length >= 7) {
+                    parsed.push({
+                        id: cols[0] || `PAT-00${i}`,
+                        ageGroup: cols[1] || "Adulto",
+                        multiplier: parseFloat(cols[2]) || 1.0,
+                        avgReaction: parseFloat(cols[3]) || 0.0,
+                        bestReaction: parseFloat(cols[4]) || 0.0,
+                        survival: parseFloat(cols[5]) || 0.0,
+                        zones: parseInt(cols[6]) || 0
+                    });
+                }
+            }
+
+            if (parsed.length > 0) {
+                activeData = parsed;
+                document.getElementById('ageFilter').value = 'ALL';
+                renderDashboard(activeData);
+            }
+        }
+
+        // CONFIGURACIÓN DE GRÁFICAS (Chart.js)
+        function initCharts() {
+            Chart.defaults.font.family = "'Orbitron', sans-serif";
+            Chart.defaults.color = '#9CA3AF';
+
+            const ctx1 = document.getElementById('reactionChart').getContext('2d');
+            reactionChartInstance = new Chart(ctx1, {
+                type: 'bar',
+                data: { labels: [], datasets: [] },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: '#FDCC0D' } } },
+                    scales: {
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, title: { display: true, text: 'Segundos (s)' } },
+                        x: { grid: { color: 'rgba(255,255,255,0.05)' } }
+                    }
+                }
+            });
+
+            const ctx2 = document.getElementById('survivalChart').getContext('2d');
+            survivalChartInstance = new Chart(ctx2, {
+                type: 'scatter',
+                data: { datasets: [] },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: '#00FFFF' } } },
+                    scales: {
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, title: { display: true, text: 'Supervivencia (s)' } },
+                        x: { grid: { color: 'rgba(255,255,255,0.05)' }, title: { display: true, text: 'Mult. Dificultad' } }
+                    }
+                }
+            });
+        }
+
+        function updateCharts(data) {
+            // Actualizar Chart 1: Promedio de Reacción por Categoría de Edad
+            const categories = ['Niño', 'Adulto', 'Anciano'];
+            const avgReactions = categories.map(cat => {
+                const catData = data.filter(d => d.ageGroup === cat);
+                if (catData.length === 0) return 0;
+                return catData.reduce((acc, c) => acc + c.avgReaction, 0) / catData.length;
+            });
+
+            reactionChartInstance.data = {
+                labels: categories,
+                datasets: [{
+                    label: 'Tiempo Reacción Medio (s)',
+                    data: avgReactions,
+                    backgroundColor: ['rgba(50, 82, 123, 0.8)', 'rgba(253, 204, 13, 0.8)', 'rgba(147, 51, 234, 0.8)'],
+                    borderColor: ['#32527B', '#FDCC0D', '#9333EA'],
+                    borderWidth: 1
+                }]
+            };
+            reactionChartInstance.update();
+
+            // Actualizar Chart 2: Dispersión Supervivencia vs Dificultad
+            const scatterPoints = data.map(d => ({ x: d.multiplier, y: d.survival }));
+
+            survivalChartInstance.data = {
+                datasets: [{
+                    label: 'Sujetos de Prueba',
+                    data: scatterPoints,
+                    backgroundColor: '#00FFFF',
+                    pointRadius: 6,
+                    pointHoverRadius: 8
+                }]
+            };
+            survivalChartInstance.update();
+        }
+    </script>
+</body>
+</html>
