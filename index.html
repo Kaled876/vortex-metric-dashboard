@@ -1,962 +1,742 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vortex Metric Engine - Analytics Dashboard</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vortex Metric Engine - Dashboard </title>
+  
+  <!-- Google Fonts: Orbitron & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <!-- html2pdf.js CDN (Exportación limpia a PDF) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <style>
+    :root {
+      --bg-dark: #050508;
+      --panel-bg: rgba(22, 27, 38, 0.75);
+      --border-dim: rgba(0, 255, 255, 0.2);
+      --gold: #FDCC0D;
+      --cyan: #00FFFF;
+    }
+    body {
+      background-color: var(--bg-dark);
+      color: #E2E8F0;
+      font-family: 'Orbitron', sans-serif;
+      background-image: radial-gradient(circle at 50% 0%, rgba(50, 82, 123, 0.35) 0%, transparent 75%), linear-gradient(to bottom, rgba(5, 5, 8, 0.85), rgba(5, 5, 8, 1));
+      min-height: 100vh;
+    }
+    .font-sans-body { font-family: 'Inter', sans-serif; }
     
-    <!-- Google Fonts: Orbitron -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    .sgx-panel {
+      background: var(--panel-bg);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid var(--border-dim);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
+    }
     
-    <!-- Tailwind CSS (CDN) -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Chart.js (CDN) -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <style>
-        /* SGX TACTICAL UI/UX SYSTEM */
-        :root {
-            --bg-dark: #050508;
-            --panel-bg: rgba(22, 27, 38, 0.75);
-            --border-dim: rgba(0, 255, 255, 0.2);
-            --gold: #FDCC0D;
-            --cyan: #00FFFF;
-        }
+    .sgx-btn {
+      clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+      transition: all 0.25s ease;
+      background: #32527B;
+      color: #FFFFFF;
+      border: none;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+    .sgx-btn:hover {
+      background: var(--gold);
+      color: #050505;
+      box-shadow: 0 0 18px rgba(253, 204, 13, 0.6);
+      cursor: pointer;
+    }
+    .sgx-btn-cyan {
+      background: rgba(0, 255, 255, 0.12);
+      border: 1px solid var(--cyan);
+      color: var(--cyan);
+    }
+    .sgx-btn-cyan:hover {
+      background: var(--cyan);
+      color: #050505;
+      box-shadow: 0 0 18px rgba(0, 255, 255, 0.6);
+    }
+    .sgx-btn-gold {
+      background: rgba(253, 204, 13, 0.15);
+      border: 1px solid var(--gold);
+      color: var(--gold);
+    }
+    .sgx-btn-gold:hover {
+      background: var(--gold);
+      color: #050505;
+      box-shadow: 0 0 18px rgba(253, 204, 13, 0.6);
+    }
+    .sgx-gold-glow { color: var(--gold); text-shadow: 0 0 10px rgba(253, 204, 13, 0.5); }
+    .sgx-cyan-glow { color: var(--cyan); text-shadow: 0 0 10px rgba(0, 255, 255, 0.5); }
 
-        body {
-            background-color: var(--bg-dark);
-            color: #E0E0E0;
-            font-family: 'Orbitron', sans-serif;
-            background-image: 
-                radial-gradient(circle at 50% 0%, rgba(50, 82, 123, 0.35) 0%, transparent 75%),
-                linear-gradient(to bottom, rgba(5, 5, 8, 0.8), rgba(5, 5, 8, 1));
-            min-height: 100vh;
-        }
-
-        .font-sans-body {
-            font-family: 'Inter', sans-serif;
-        }
-
-        /* Glassmorphism Panel Standard */
-        .sgx-panel {
-            background: var(--panel-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid var(--border-dim);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
-        }
-
-        /* 45-Degree Polygonal Cut Buttons */
-        .sgx-btn {
-            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-            transition: all 0.3s ease;
-            background: #32527B;
-            color: #FFFFFF;
-            border: none;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .sgx-btn:hover {
-            background: var(--gold);
-            color: #050505;
-            box-shadow: 0 0 15px rgba(253, 204, 13, 0.6);
-            cursor: pointer;
-        }
-
-        .sgx-btn-cyan {
-            background: rgba(0, 255, 255, 0.15);
-            border: 1px solid var(--cyan);
-            color: var(--cyan);
-        }
-        .sgx-btn-cyan:hover {
-            background: var(--cyan);
-            color: #050505;
-            box-shadow: 0 0 15px rgba(0, 255, 255, 0.6);
-        }
-
-        .sgx-btn-gold {
-            background: rgba(253, 204, 13, 0.15);
-            border: 1px solid var(--gold);
-            color: var(--gold);
-        }
-
-        .sgx-btn-gold:hover {
-            background: var(--gold);
-            color: #050505;
-            box-shadow: 0 0 18px rgba(253, 204, 13, 0.6);
-        }
-
-        /* Fluid Typography & Neon Glows */
-        .sgx-title {
-            font-size: clamp(1.4rem, 2.5vw, 2.2rem);
-            text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
-        }
-
-        .sgx-gold-glow {
-            color: var(--gold);
-            text-shadow: 0 0 8px rgba(253, 204, 13, 0.6);
-        }
-
-        .sgx-cyan-glow {
-            color: var(--cyan);
-            text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
-        }
-
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #0F172A;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #32527B;
-            border-radius: 3px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--gold);
-        }
-
-        /*PRINT STYLESHEET PARA REPORTE CLINICAL*/
-        @media print {
-            body {
-                background:#FFFFFF !important;
-                color: #000000 !important;
-                font-family: 'Inter', sans-serif !important;
-            }
-            .no-print {
-                display: none !important;
-            }
-            #reportModal {
-                position: absolute !important;
-                left: 0 !important;
-                top: 0 !important;
-                width: 100% !important;
-                height: auto !important;
-                background: #FFFFFF !important;
-                color:#000000 !important;
-                padding: 0 !important;
-            }
-            .print-clean {
-                background: #FFFFFF !important;
-                border: 1px solid #cccccc !important;
-                box-shadow: none !important;
-                color: #000000 !important;
-            }
-            .print-text-dark {
-                color: #111827 !important;
-                text-shadow: none !important;
-            }
-        }
-    </style>
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0F172A; }
+    ::-webkit-scrollbar-thumb { background: #32527B; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+  </style>
 </head>
 <body class="p-3 md:p-6 font-sans-body">
 
-    <!-- HUD CONTAINER -->
-    <div class="max-w-7xl mx-auto space-y-6 no-print">
-
-        <!-- HEADER / BRANDING BANNER -->
-        <header class="sgx-panel p-5 rounded-lg flex flex-col md:flex-row justify-between items-center gap-4">
-            <div>
-                <div class="flex items-center gap-3">
-                    <span class="inline-block w-3.5 h-3.5 rounded-full bg-cyan-400 animate-ping"></span>
-                    <h1 class="title-xl md:text-2xl font-black tracking-wider text-white font-mono">VORTEX METRIC ENGINE</h1>
-                </div>
-                <p class="text-xs text-gray-400 mt-1 uppercase tracking-widest font-mono">
-                    Módulo Clínico UE5 • <span class="text-yellow-400">Spatialgineers SGX Core</span>
-                </p>
-            </div>
-            
-            <div class="flex flex-wrap gap-2.5 items-center">
-                <input type="file" id="csvFileInput" accept=".csv" class="hidden" onchange="handleFileUpload(event)">
-                <button onclick="document.getElementById('csvFileInput').click()" class="sgx-btn sgx-btn-cyan px-3.5 py-2 text-xs font-mono">
-                    📂 Cargar CSV External
-                </button>
-                <button onclick="loadSimulatedData()" class="sgx-btn px-3.5 py-2 text-xs font-mono">
-                    🔄 Data Demostración
-                </button>
-                <button onclick="openClinicalReportModal()" class="sgx-btn sgx-btn-gold py-4 py-2 text-xs font-mono flex items-center gap-1.5">
-                    📄 Generar Reporte Clínico
-                </button>
-            </div>
-        </header>
-
-        <!-- BARRA DE CONTROL: SELECCIÓN DE PACIENTE Y FILTRO -->
-         <section class="sgx-panel p-4 rounded-lg flex flex-col sm:flew-row justify-between items-center gap-4 border-l-4 border-l-yellow-400">
-            <div class="flex items-center gap-3 w-full sm:w-auto">
-                <span class="text-yellow-400 text-lg">👤</span>
-                <div class="w-full sm:w-auto">
-                    <label for="patientSelect" class="block text-[11px] text-gray-400 uppercase font-mono tracking-wider font-semibold">
-                        Seleccionar Paciente / ID de Sujeto:
-                    </label>
-                    <select id="patientSelect" onchange="onPatientSelectChange()" class="mt-1 w-full sm:w-80 bg-black/80 border border-yellow-500/50 text-xs text-yellow-300 rounded px-3 py-2 font-mono focus:outline-none focus:border-cyan-400 transition-colors">
-                        <!-- Populado Dinamicamente-->
-                    </select>
-                </div>
-            </div>
-
-            <div class="flex items-center gap-4 w-full sm:w-auto justify-end">
-                <div class="text-right font-mono">
-                    <span class="block text=[10px] text-gray-400 uppercase">Estado de Selección</span>
-                    <span id="selectedPatientBadge" class="text-xs text-cyan-400 font-bold">TODO LOS PACIENTES</span>
-                </div>
-                <button onclick="resetPatientFilter()" class="sgx-btn px-3 py-1.5 text-[11px] font-mono">
-                    Limpiar
-                </button>
-            </div>
-         </section>
-
-        <!-- TELEMETRY SUMMARY CARDS -->
-        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="sgx-panel p-4 rounded-lg border-t-2 border-t-cyan-400">
-                <p class="text-xs text-gray-400 uppercase tracking-wider font-mono">Total Pacientes</p>
-                <h3 id="statTotalPatients" class="text-3xl font-extrabold sgx-gold-glow mt-1 font-mono">0</h3>
-                <p id="statPatientSub" class="text-[10px] text-cyan-400 mt-1 font-mono">Muestras consolidadas</p>
-            </div>
-            <div class="sgx-panel p-4 rounded-lg border-t-2 border-t-yellow-400">
-                <p class="text-xs text-gray-400 uppercase tracking-wider font-mono">Latencia Media (RT)</p>
-                <h3 id="statAvgReaction" class="text-3xl font-extrabold text-cyan-400 mt-1 font-mono">0 ms</h3>
-                <p id="statRtSub" class="text-[10px] text-gray-400 mt-1 font-mono">Promedio en Danger Zones</p>
-            </div>
-            <div class="sgx-panel p-4 rounded-lg border-t-2 border-t-green-400">
-                <p class="text-xs text-gray-400 uppercase tracking-wider font-mono">Supervivencia Media</p>
-                <h3 id="statAvgSurvival" class="text-2xl font-extrabold text-white mt-1 font-mono">0.0s</h3>
-                <p class="text-[10px] text-yellow-400 mt-1 font-mono">Tiempo en simulación UE5</p>
-            </div>
-            <div class="sgx-panel p-4 rounded-lg border-t-2 border-t-purple-400">
-                <p class="text-xs text-gray-400 uppercase tracking-wider font-mono">Índice de Fatiga</p>
-                <h3 id="statFatigueIndex" class="text-2xl font-extrabold text-yellow-400 mt-1 font-mono">0%</h3>
-                <p id="statFatigueSub" class="text-[10px] text-cyan-400 mt-1 font-mono">Degradación Z1 ➔ Max DZ</p>
-            </div>
-        </section>
-
-        <!-- ANALYTICS CHARTS SECTION -->
-        <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- Chart 1: Fatigue Timeline / Reaction Latency Over Danger Zones -->
-            <div class="sgx-panel p-5 rounded-lg flex flex-col justify-between">
-                <div class="mb-3 flex justify-between items-start">
-                    <div>
-                        <h2 class="text-xs font-bold text-white uppercase tracking-wider font-mono text-cyan-300">
-                            📈 Línea de Tiempo de Fatiga (Latencia por Danger Zone)
-                        </h2>
-                        <p class="text-[11px] text-gray-400 mt-0.5">
-                            Variación del Tiempo de Reacción ($ms$) a través de las Zonas de Peligro
-                        </p>
-                    </div>
-                    <span class="text-[10px] bg-yellow-400/10 border border-yellow-400/30 text-yellow-300 px-2 py-0.5 rounded font-mono">
-                        Fatigue Latency
-                    </span>
-                </div>
-                <div class="relative w-full h-64">
-                    <canvas id="fatigueTimelineChart"></canvas>
-                </div>
-            </div>
-
-            <!-- Chart 2: Reaction Time by Age Group / Patient Comparison -->
-            <div class="sgx-panel p-5 rounded-lg flex flex-col justify-between">
-                <div class="mb-3 flex justify-between items-start">
-                    <div>
-                        <h2 class="text-xs font-bold text-white uppercase tracking-wider font-mono text-cyan-300">
-                            📊 Comparativa Demográfica y Reacción
-                        </h2>
-                        <p class="text-[11px] text-gray-400 mt-0.5">
-                            Tiempo de respuesta medio ($ms$) por Categoría de Edad / Sujeto
-                        </p>
-                    </div>
-                    <span class="text-[10px] bg-cyan-400/10 border border-cyan-400/30 text-cyan-300 px-2 py-0.5 rounded font-mono">
-                        Demographic RT
-                    </span>
-                </div>
-                <div class="relative w-full h-64">
-                    <canvas id="reactionChart"></canvas>
-                </div>
-            </div>
-        </section>
-
-        <!-- DATA TABLE SECTION -->
-        <section class="sgx-panel p-5 rounded-lg">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-                <div>
-                    <h2 class="text-xs font-bold text-white uppercase tracking-wider font-mono text-yellow-400">
-                        📋 Telemetría de Ensayos Clinicos (UE5 Direct Data)
-                    </h2>
-                    <p class="text-[11px] text-gray-400">Estructura compatible con Christian Unreal Engine Exporter</p>
-                </div>
-                <!-- Filter by Category -->
-                <div class="flex items-center gap-2">
-                    <label for="ageCategoryFilter" class="text-xs text-gray-400 uppercase">Filtrar Edad:</label>
-                    <select id="ageCategoryFilter" onchange="applyCategoryFilter()" class="bg-black border border-cyan-500/40 text-xs text-cyan-300 rounded px-2.5 py-1 font-mono focus:outline-none">
-                        <option value="ALL">Todos las categorías</option>
-                        <option value="Niño">Niño</option>
-                        <option value="Adulto">Adulto</option>
-                        <option value="Anciano">Anciano</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs font-sans-body">
-                    <thead class="bg-[#32527B]/40 text-cyan-300 uppercase tracking-wider font-mono border-b border-cyan-500/30">
-                        <tr>
-                            <th class="p-2.5">ID Paciente</th>
-                            <th class="p-2.5">Edad</th>
-                            <th class="p-2.5">Categoría Edad</th>
-                            <th class="p-2.5">Mult. Velocidad</th>
-                            <th class="p-2.5">Danger Zone ID</th>
-                            <th class="p-2.5">Tiempo Reacción</th>
-                            <th class="p-2.5">Sobrevivido</th>
-                        </tr>
-                    </thead>
-                    <tbody id="telemetryTableBody" class="divide-y divide-gray-800 text-gray-300 font-mono text-[11px]">
-                        <!-- Rows dynamically populated -->
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-        <!-- FOOTER / PROTOCOL VERIFICATION -->
-        <footer class="text-center text-[10px] text-gray-500 py-4 border-t border-gray-900">
-            SPATIALGINEERS LLC © 2026 | PROTOCOLO SGX.SYSTEM | UNREAL ENGINE 5 TELEMETRY CONNECTOR
-        </footer>
-
-    <!-- CLINICAL REPORT MODAL / PRINT VIEW -->
-    <div id="reportModal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-md p-4 md:p-8 flex items-center justify-center">
-        <div class="bg-[#0F172A] border border-yellow-400/50 rounded-lg max-w-4xl w-full p-6 text-gray-100 shadow-2xl relative print-clean">
-            
-            <!-- Modal Actions Bar (hidden when printing) -->
-            <div class="flex justify-between items-center pb-4 mb-4 border-b border-gray-700 no-print">
-                <div class="flex items-center gap-2">
-                    <span class="text-yellow-400 text-xl">📄</span>
-                    <h2 class="text-sm font-bold font-mono text-white uppercase">Expediente Clínico / Reporte de Telemetría</h2>
-                </div>
-                <div class="flex gap-2">
-                    <button onclick="window.print()" class="sgx-btn sgx-btn-gold px-3 py-1.5 text-xs font-mono">
-                        🖨️ Imprimir / Exportar PDF
-                    </button>
-                    <button onclick="closeClinicalReportModal()" class="sgx-btn px-3 py-1.5 text-xs font-mono bg-red-900/60 hover:bg-red-600 text-white">
-                        ✕ Cerrar
-                    </button>
-                </div>
-            </div>
-
-            <!-- Printable Report Content -->
-            <div id="reportPrintArea" class="space-y-6">
-                
-                <!-- Report Header -->
-                <div class="flex justify-between items-start border-b border-gray-600 pb-4">
-                    <div>
-                        <h1 class="text-lg md:text-xl font-black font-mono text-yellow-400 print-text-dark uppercase">
-                            SPATIALGINEERS • REPORTE EVALUATIVO CLINICO
-                        </h1>
-                        <p class="text-xs text-gray-400 print-text-dark font-mono mt-0.5">
-                            Sistema de Telemetría de Juego Terapéutico (Endless-Riser / Unreal Engine 5)
-                        </p>
-                    </div>
-                    <div class="text-right font-mono text-xs text-gray-300 print-text-dark">
-                        <p><strong>Fecha:</strong> <span id="reportDate">01/08/2026</span></p>
-                        <p><strong>Protocolo:</strong> SGX-MED-V5</p>
-                    </div>
-                </div>
-
-                <!-- Patient Demographics Box -->
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-black/40 p-4 rounded border border-gray-700 print-clean font-mono text-xs">
-                    <div>
-                        <span class="block text-[10px] text-gray-400 uppercase">ID Paciente</span>
-                        <span id="reportPatientId" class="font-bold text-cyan-300 print-text-dark">PAT-001</span>
-                    </div>
-                    <div>
-                        <span class="block text-[10px] text-gray-400 uppercase">Edad / Categoría</span>
-                        <span id="reportPatientAge" class="font-bold text-yellow-300 print-text-dark">10a (Niño)</span>
-                    </div>
-                    <div>
-                        <span class="block text-[10px] text-gray-400 uppercase">Mult. Velocidad</span>
-                        <span id="reportMultiplier" class="font-bold text-white print-text-dark">1.2x</span>
-                    </div>
-                    <div>
-                        <span class="block text-[10px] text-gray-400 uppercase">Supervivencia Total</span>
-                        <span id="reportSurvival" class="font-bold text-green-400 print-text-dark font-mono">45.2 s</span>
-                    </div>
-                </div>
-
-                <!-- Metrics Summary Table -->
-                <div>
-                    <h3 class="text-xs font-bold font-mono text-yellow-400 uppercase mb-2 print-text-dark">
-                        1. Métricas Cuantitativas de Respuesta
-                    </h3>
-                    <div class="grid grid-cols-3 gap-3 text-center font-mono text-xs">
-                        <div class="p-3 bg-gray-900/60 rounded border border-gray-700 print-clean">
-                            <span class="block text-[10px] text-gray-400">RT Inicial (DZ-01)</span>
-                            <span id="reportRtInitial" class="text-sm font-bold text-cyan-300 print-text-dark">0 ms</span>
-                        </div>
-                        <div class="p-3 bg-gray-900/60 rounded border border-gray-700 print-clean">
-                            <span class="block text-[10px] text-gray-400">RT Máximo (DZ Final)</span>
-                            <span id="reportRtMax" class="text-sm font-bold text-yellow-300 print-text-dark">0 ms</span>
-                        </div>
-                        <div class="p-3 bg-gray-900/60 rounded border border-gray-700 print-clean">
-                            <span class="block text-[10px] text-gray-400">Tasa de Degradación</span>
-                            <span id="reportDegradation" class="text-sm font-bold text-red-400 print-text-dark">0%</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Automated Clinical Diagnostic Note -->
-                <div class="bg-gray-900/80 p-4 rounded border border-yellow-500/40 print-clean">
-                    <h3 class="text-xs font-bold font-mono text-yellow-400 uppercase mb-1.5 print-text-dark flex items-center gap-1.5">
-                        💡 <span>Nota Diagnóstica Automatizada (Algoritmo SGX):</span>
-                    </h3>
-                    <p id="reportDiagnosticNote" class="text-xs leading-relaxed text-gray-200 print-text-dark font-sans-body">
-                        Cargando evaluación...
-                    </p>
-                </div>
-
-                <!-- Fatigue Progression Grid in Modal -->
-                <div>
-                    <h3 class="text-xs font-bold font-mono text-cyan-300 uppercase mb-2 print-text-dark">
-                        2. Evolución Intra-Sesión por Danger Zone
-                    </h3>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs font-mono">
-                            <thead class="bg-gray-800 text-gray-300 border-b border-gray-700 print-clean">
-                                <tr>
-                                    <th class="p-2">Danger Zone</th>
-                                    <th class="p-2">Tiempo Reacción ($ms$)</th>
-                                    <th class="p-2">Tiempo Reacción ($s$)</th>
-                                    <th class="p-2">Estado Fatiga</th>
-                                </tr>
-                            </thead>
-                            <tbody id="reportZoneTableBody" class="divide-y divide-gray-800 text-gray-300 print-clean">
-                                <!-- Populated dynamically -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Signatures / Stamp Section -->
-                <div class="pt-6 border-t border-gray-700 grid grid-cols-2 gap-8 text-center text-[10px] font-mono text-gray-400 print-text-dark">
-                    <div>
-                        <div class="border-b border-gray-500 mb-1 h-8"></div>
-                        <p>Firma Especialista / Terapeuta</p>
-                    </div>
-                    <div>
-                        <div class="border-b border-gray-500 mb-1 h-8"></div>
-                        <p>Sello Validación Spatialgineers</p>
-                    </div>
-                </div>
-            </div>
+  <div class="max-w-7xl mx-auto space-y-6 no-print">
+    <!-- HEADER -->
+    <header class="sgx-panel p-5 rounded-lg flex flex-col md:flex-row justify-between items-center gap-4">
+      <div>
+        <div class="flex items-center gap-3">
+          <span class="inline-block w-3.5 h-3.5 rounded-full bg-cyan-400 animate-ping"></span>
+          <h1 class="text-xl md:text-2xl font-black tracking-wider text-white font-mono">VORTEX METRIC ENGINE</h1>
         </div>
+        <p class="text-xs text-gray-400 mt-1 uppercase tracking-widest font-mono">
+         Módulo Clínico • 
+          <span class="text-yellow-400">VORTEX METRIC LABS</span>
+        </p>
+      </div>
+      <div class="flex flex-wrap gap-2.5 items-center">
+        <input type="file" id="csvFileInput" accept=".csv, .txt" class="hidden" onchange="handleFileUpload(event)">
+        <button onclick="document.getElementById('csvFileInput').click()" class="sgx-btn sgx-btn-cyan px-3.5 py-2 text-xs font-mono">
+          📂 Cargar CSV Telemetría (UE5)
+        </button>
+        <button onclick="loadSimulatedData()" class="sgx-btn px-3.5 py-2 text-xs font-mono">
+          🔄 Data Muestra
+        </button>
+        <button onclick="openClinicalReportModal()" class="sgx-btn sgx-btn-gold px-4 py-2 text-xs font-mono flex items-center gap-1.5">
+          📄 Generar Reporte Clínico
+        </button>
+      </div>
+    </header>
+
+    <!-- CONTROL BAR -->
+    <section class="sgx-panel p-4 rounded-lg flex flex-col sm:flex-row justify-between items-center gap-4 border-l-4 border-l-yellow-400">
+      <div class="flex items-center gap-3 w-full sm:w-auto">
+        <span class="text-yellow-400 text-lg">👤</span>
+        <div class="w-full sm:w-auto">
+          <label for="patientSelect" class="block text-[11px] text-gray-400 uppercase font-mono tracking-wider font-semibold">
+            Seleccionar Paciente / ID Sujeto:
+          </label>
+          <select id="patientSelect" onchange="onPatientSelectChange()" class="mt-1 w-full sm:w-80 bg-black/80 border border-yellow-500/50 text-xs text-yellow-300 rounded px-3 py-2 font-mono focus:outline-none focus:border-cyan-400">
+            <option value="">-- Seleccione al paciente --</option>
+          </select>
+        </div>
+      </div>
+      <div class="flex items-center gap-4 w-full sm:w-auto justify-end">
+        <div class="text-right font-mono">
+          <span class="block text-[10px] text-gray-400 uppercase">Paciente Seleccionado</span>
+          <span id="selectedPatientBadge" class="text-xs text-cyan-400 font-bold">Ninguno</span>
+        </div>
+        <button onclick="resetPatientFilter()" class="sgx-btn px-3 py-1.5 text-[11px] font-mono">
+          Restablecer
+        </button>
+      </div>
+    </section>
+
+    <!-- KPI CARDS -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="sgx-panel p-4 rounded-lg border-t-2 border-t-cyan-400">
+        <p class="text-xs text-gray-400 uppercase tracking-wider font-mono">Sujeto Evaluado</p>
+        <h3 id="statTotalPatients" class="text-2xl font-extrabold sgx-gold-glow mt-1 font-mono">-</h3>
+        <p id="statPatientSub" class="text-[10px] text-cyan-400 mt-1 font-mono">Muestra activa</p>
+      </div>
+      <div class="sgx-panel p-4 rounded-lg border-t-2 border-t-yellow-400">
+        <p class="text-xs text-gray-400 uppercase tracking-wider font-mono">Latencia Media (RT)</p>
+        <h3 id="statAvgReaction" class="text-2xl font-extrabold text-cyan-400 mt-1 font-mono">0 ms</h3>
+        <p id="statRtSub" class="text-[10px] text-gray-400 mt-1 font-mono">Variabilidad (SD): ±0 ms</p>
+      </div>
+      <div class="sgx-panel p-4 rounded-lg border-t-2 border-t-green-400">
+        <p class="text-xs text-gray-400 uppercase tracking-wider font-mono">Lapsos de Atención</p>
+        <h3 id="statLapses" class="text-2xl font-extrabold text-white mt-1 font-mono">0</h3>
+        <p id="statLapseRate" class="text-[10px] text-yellow-400 mt-1 font-mono">Tasa: 0% (>500ms)</p>
+      </div>
+      <div class="sgx-panel p-4 rounded-lg border-t-2 border-t-purple-400">
+        <p class="text-xs text-gray-400 uppercase tracking-wider font-mono">Tendencia de Fatiga</p>
+        <h3 id="statFatigueIndex" class="text-2xl font-extrabold text-yellow-400 mt-1 font-mono">+0 ms/DZ</h3>
+        <p id="statFatigueSub" class="text-[10px] text-cyan-400 mt-1 font-mono">Pendiente de degradación (m)</p>
+      </div>
+    </section>
+
+    <!-- CHARTS SECTION -->
+    <section class="grid grid-cols-1 gap-6">
+      <div class="sgx-panel p-5 rounded-lg flex flex-col justify-between">
+        <div class="mb-3 flex justify-between items-start">
+          <div>
+            <h2 class="text-xs font-bold text-white uppercase tracking-wider font-mono text-cyan-300">
+              📈 Curva Temporal de Reacción y Umbrales Clínicos
+            </h2>
+            <p class="text-[11px] text-gray-400 mt-0.5">
+              Tiempo de respuesta por Danger Zone vs. Líneas Normativas
+            </p>
+          </div>
+          <span class="text-[10px] bg-yellow-400/10 border border-yellow-400/30 text-yellow-300 px-2 py-0.5 rounded font-mono">
+            RT vs Standards
+          </span>
+        </div>
+        <div class="relative w-full h-64">
+          <canvas id="fatigueTimelineChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- TELEMETRY TABLE -->
+    <section class="sgx-panel p-5 rounded-lg">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+        <div>
+          <h2 class="text-xs font-bold text-white uppercase tracking-wider font-mono text-yellow-400">
+            📋 Datos Brutos de Telemetría (Vortex Metric Engine Data)
+          </h2>
+        </div>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs font-sans-body">
+          <thead class="bg-[#32527B]/40 text-cyan-300 uppercase tracking-wider font-mono border-b border-cyan-500/30">
+            <tr>
+              <th class="p-2.5">ID Paciente</th>
+              <th class="p-2.5">Edad</th>
+              <th class="p-2.5">Mult. Vel</th>
+              <th class="p-2.5">Danger Zone</th>
+              <th class="p-2.5">Reacción (ms)</th>
+              <th class="p-2.5">Supervivencia (s)</th>
+            </tr>
+          </thead>
+          <tbody id="telemetryTableBody" class="divide-y divide-gray-800 text-gray-300 font-mono text-[11px]">
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- CLINICAL REPORT MODAL -->
+  <div id="reportModal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-md p-4 md:p-8 flex items-center justify-center">
+    <div class="bg-[#0F172A] border border-yellow-400/50 rounded-lg max-w-4xl w-full p-6 text-gray-100 shadow-2xl relative">
+      <div class="flex justify-between items-center pb-4 mb-4 border-b border-gray-700 no-print">
+        <div class="flex items-center gap-2">
+          <span class="text-yellow-400 text-xl">📄</span>
+          <h2 class="text-sm font-bold font-mono text-white uppercase">Expediente de Evaluación Neuropsicológica</h2>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="downloadClinicalPDF()" class="sgx-btn sgx-btn-gold px-3 py-1.5 text-xs font-mono">
+            📥 Descargar PDF
+          </button>
+          <button onclick="closeClinicalReportModal()" class="sgx-btn px-3 py-1.5 text-xs font-mono bg-red-900/60 hover:bg-red-600 text-white">
+            ✕ Cerrar
+          </button>
+        </div>
+      </div>
+
+      <div id="reportPrintArea" class="space-y-6 bg-[#0F172A] p-4 rounded text-gray-100">
+        <div class="flex justify-between items-start border-b border-gray-600 pb-4">
+          <div>
+            <h1 class="text-lg font-black font-mono text-yellow-400 uppercase">INFORME CLÍNICO DE TELEMETRÍA VORTEX METRIC ENGINE</h1>
+            <p class="text-xs text-gray-400 font-mono mt-0.5">Plataforma de Diagnóstico Atencional & Tiempos de Reacción (UE5)</p>
+          </div>
+          <div class="text-right font-mono text-xs text-gray-300">
+            <p><strong>Fecha:</strong> <span id="reportDate">01/08/2026</span></p>
+            <p><strong>Código:</strong> VME-NEURO-V2</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-black/40 p-4 rounded border border-gray-700 font-mono text-xs">
+          <div><span class="block text-[10px] text-gray-400 uppercase">Sujeto</span><span id="reportPatientId" class="font-bold text-cyan-300">PAT-001</span></div>
+          <div><span class="block text-[10px] text-gray-400 uppercase">Edad / Categoría</span><span id="reportPatientAge" class="font-bold text-yellow-300">10a (Niño)</span></div>
+          <div><span class="block text-[10px] text-gray-400 uppercase">Desviación Standard (SD)</span><span id="reportPatientSD" class="font-bold text-white">±0 ms</span></div>
+          <div><span class="block text-[10px] text-gray-400 uppercase">Supervivencia Total</span><span id="reportSurvival" class="font-bold text-green-400 font-mono">0 s</span></div>
+        </div>
+
+        <div>
+          <h3 class="text-xs font-bold font-mono text-yellow-400 uppercase mb-2">1. Métricas Neuropsicológicas</h3>
+          <div class="grid grid-cols-3 gap-3 text-center font-mono text-xs">
+            <div class="p-3 bg-gray-900/60 rounded border border-gray-700">
+              <span class="block text-[10px] text-gray-400">Latencia Promedio (RT)</span>
+              <span id="reportRtInitial" class="text-sm font-bold text-cyan-300">0 ms</span>
+            </div>
+            <div class="p-3 bg-gray-900/60 rounded border border-gray-700">
+              <span class="block text-[10px] text-gray-400">Lapsos de Atención (>500ms)</span>
+              <span id="reportLapses" class="text-sm font-bold text-yellow-300">0 (0%)</span>
+            </div>
+            <div class="p-3 bg-gray-900/60 rounded border border-gray-700">
+              <span class="block text-[10px] text-gray-400">Tasa de Degradación por DZ</span>
+              <span id="reportSlope" class="text-sm font-bold text-red-400">+0 ms/zona</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-gray-900/80 p-4 rounded border border-yellow-500/40">
+          <h3 class="text-xs font-bold font-mono text-yellow-400 uppercase mb-1.5 flex items-center gap-1.5">
+            💡 <span>Evaluación Algorítmica Automatizada:</span>
+          </h3>
+          <p id="reportDiagnosticNote" class="text-xs leading-relaxed text-gray-200 font-sans-body">Generando dictamen...</p>
+        </div>
+
+        <div class="space-y-1">
+          <label class="block text-xs font-mono text-yellow-400 uppercase">Observaciones del Especialista :</label>
+          <textarea id="clinicalNotesInput" rows="3" class="w-full bg-black/60 border border-gray-700 rounded p-2 text-xs text-gray-200 font-sans-body focus:outline-none focus:border-cyan-400" placeholder="Escriba aquí sus anotaciones clínicas antes de exportar a PDF..."></textarea>
+        </div>
+ <!-- Signatures / Stamp Section -->
+          <div
+            class="pt-6 border-t border-gray-700 grid grid-cols-2 gap-8 text-center text-[10px] font-mono text-gray-400 print-text-dark"
+          >
+            <div>
+              <div class="border-b border-gray-500 mb-1 h-8"></div>
+              <p>Firma Terapeuta / Especialista</p>
+            </div>
+            <div>
+              <div class="border-b border-gray-500 mb-1 h-8"></div>
+              <p>Sello Validación Vortex Metric Labs</p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
+      </div>
+    </div>
+  </div>
 
-    <!-- DASHBOARD LOGIC -->
-    <script>
-        // DATASET COMPATIBLE CON EXPORTACIÓN UNREAL ENGINE 5 (CHRISTIAN DATA FORMAT)
-        // Atributos: ID_Paciente, Edad, Categoria_Edad, Multiplicador_Velocidad, DangerZone_ID, Tiempo_Reaccion_ms, Sobrevivido_s
-        const ChristianUE5Dataset = [
-            // Paciente 101 - Niño
-            { ID_Paciente: "Sujeto #101", Edad: 9, Categoria_Edad: "Niño", Multiplicador_Velocidad: 1.2, DangerZone_ID: "DZ-01", Tiempo_Reaccion_ms: 220, Sobrevivido_s: 52.4 },
-            { ID_Paciente: "Sujeto #101", Edad: 9, Categoria_Edad: "Niño", Multiplicador_Velocidad: 1.2, DangerZone_ID: "DZ-02", Tiempo_Reaccion_ms: 245, Sobrevivido_s: 52.4 },
-            { ID_Paciente: "Sujeto #101", Edad: 9, Categoria_Edad: "Niño", Multiplicador_Velocidad: 1.2, DangerZone_ID: "DZ-03", Tiempo_Reaccion_ms: 280, Sobrevivido_s: 52.4 },
-            { ID_Paciente: "Sujeto #101", Edad: 9, Categoria_Edad: "Niño", Multiplicador_Velocidad: 1.2, DangerZone_ID: "DZ-04", Tiempo_Reaccion_ms: 310, Sobrevivido_s: 52.4 },
-            { ID_Paciente: "Sujeto #101", Edad: 9, Categoria_Edad: "Niño", Multiplicador_Velocidad: 1.2, DangerZone_ID: "DZ-05", Tiempo_Reaccion_ms: 350, Sobrevivido_s: 52.4 },
+  <script>
+    // DATASET DE MUESTRA UE5
+    const initialDataset = [
+      { ID_Paciente: "Sujeto #101", Edad: 9, Categoria_Edad: "Niño", Multiplicador_Velocidad: 1.2, DangerZone_ID: "DZ-01", Tiempo_Reaccion_ms: 220, Sobrevivido_s: 52.4 },
+      { ID_Paciente: "Sujeto #101", Edad: 9, Categoria_Edad: "Niño", Multiplicador_Velocidad: 1.2, DangerZone_ID: "DZ-02", Tiempo_Reaccion_ms: 245, Sobrevivido_s: 52.4 },
+      { ID_Paciente: "Sujeto #101", Edad: 9, Categoria_Edad: "Niño", Multiplicador_Velocidad: 1.2, DangerZone_ID: "DZ-03", Tiempo_Reaccion_ms: 280, Sobrevivido_s: 52.4 },
+      { ID_Paciente: "Sujeto #101", Edad: 9, Categoria_Edad: "Niño", Multiplicador_Velocidad: 1.2, DangerZone_ID: "DZ-04", Tiempo_Reaccion_ms: 310, Sobrevivido_s: 52.4 },
+      { ID_Paciente: "Sujeto #101", Edad: 9, Categoria_Edad: "Niño", Multiplicador_Velocidad: 1.2, DangerZone_ID: "DZ-05", Tiempo_Reaccion_ms: 350, Sobrevivido_s: 52.4 },
+      
+      { ID_Paciente: "Sujeto #102", Edad: 11, Categoria_Edad: "Niño", Multiplicador_Velocidad: 1.2, DangerZone_ID: "DZ-01", Tiempo_Reaccion_ms: 200, Sobrevivido_s: 41.8 },
+      { ID_Paciente: "Sujeto #102", Edad: 11, Categoria_Edad: "Niño", Multiplicador_Velocidad: 1.2, DangerZone_ID: "DZ-02", Tiempo_Reaccion_ms: 290, Sobrevivido_s: 41.8 },
+      { ID_Paciente: "Sujeto #102", Edad: 11, Categoria_Edad: "Niño", Multiplicador_Velocidad: 1.2, DangerZone_ID: "DZ-03", Tiempo_Reaccion_ms: 410, Sobrevivido_s: 41.8 },
+      { ID_Paciente: "Sujeto #102", Edad: 11, Categoria_Edad: "Niño", Multiplicador_Velocidad: 1.2, DangerZone_ID: "DZ-04", Tiempo_Reaccion_ms: 530, Sobrevivido_s: 41.8 },
+      { ID_Paciente: "Sujeto #102", Edad: 11, Categoria_Edad: "Niño", Multiplicador_Velocidad: 1.2, DangerZone_ID: "DZ-05", Tiempo_Reaccion_ms: 610, Sobrevivido_s: 41.8 },
 
-            // Paciente 102 - Niño con alta fatiga
-            { ID_Paciente: "Sujeto #102", Edad: 11, Categoria_Edad: "Niño", Multiplicador_Velocidad: 1.2, DangerZone_ID: "DZ-01", Tiempo_Reaccion_ms: 200, Sobrevivido_s: 41.8 },
-            { ID_Paciente: "Sujeto #102", Edad: 11, Categoria_Edad: "Niño", Multiplicador_Velocidad: 1.2, DangerZone_ID: "DZ-02", Tiempo_Reaccion_ms: 290, Sobrevivido_s: 41.8 },
-            { ID_Paciente: "Sujeto #102", Edad: 11, Categoria_Edad: "Niño", Multiplicador_Velocidad: 1.2, DangerZone_ID: "DZ-03", Tiempo_Reaccion_ms: 410, Sobrevivido_s: 41.8 },
-            { ID_Paciente: "Sujeto #102", Edad: 11, Categoria_Edad: "Niño", Multiplicador_Velocidad: 1.2, DangerZone_ID: "DZ-04", Tiempo_Reaccion_ms: 530, Sobrevivido_s: 41.8 },
-            { ID_Paciente: "Sujeto #102", Edad: 11, Categoria_Edad: "Niño", Multiplicador_Velocidad: 1.2, DangerZone_ID: "DZ-05", Tiempo_Reaccion_ms: 610, Sobrevivido_s: 41.8 },
+      { ID_Paciente: "Sujeto #201", Edad: 28, Categoria_Edad: "Adulto", Multiplicador_Velocidad: 1.0, DangerZone_ID: "DZ-01", Tiempo_Reaccion_ms: 180, Sobrevivido_s: 78.5 },
+      { ID_Paciente: "Sujeto #201", Edad: 28, Categoria_Edad: "Adulto", Multiplicador_Velocidad: 1.0, DangerZone_ID: "DZ-02", Tiempo_Reaccion_ms: 195, Sobrevivido_s: 78.5 },
+      { ID_Paciente: "Sujeto #201", Edad: 28, Categoria_Edad: "Adulto", Multiplicador_Velocidad: 1.0, DangerZone_ID: "DZ-03", Tiempo_Reaccion_ms: 210, Sobrevivido_s: 78.5 },
+      { ID_Paciente: "Sujeto #201", Edad: 28, Categoria_Edad: "Adulto", Multiplicador_Velocidad: 1.0, DangerZone_ID: "DZ-04", Tiempo_Reaccion_ms: 225, Sobrevivido_s: 78.5 },
+      { ID_Paciente: "Sujeto #201", Edad: 28, Categoria_Edad: "Adulto", Multiplicador_Velocidad: 1.0, DangerZone_ID: "DZ-05", Tiempo_Reaccion_ms: 240, Sobrevivido_s: 78.5 },
 
-            // Paciente 201 - Adulto despeno estable
-            { ID_Paciente: "Sujeto #201", Edad: 28, Categoria_Edad: "Adulto", Multiplicador_Velocidad: 1.0, DangerZone_ID: "DZ-01", Tiempo_Reaccion_ms: 180, Sobrevivido_s: 78.5 },
-            { ID_Paciente: "Sujeto #201", Edad: 28, Categoria_Edad: "Adulto", Multiplicador_Velocidad: 1.0, DangerZone_ID: "DZ-02", Tiempo_Reaccion_ms: 195, Sobrevivido_s: 78.5 },
-            { ID_Paciente: "Sujeto #201", Edad: 28, Categoria_Edad: "Adulto", Multiplicador_Velocidad: 1.0, DangerZone_ID: "DZ-03", Tiempo_Reaccion_ms: 210, Sobrevivido_s: 78.5 },
-            { ID_Paciente: "Sujeto #201", Edad: 28, Categoria_Edad: "Adulto", Multiplicador_Velocidad: 1.0, DangerZone_ID: "DZ-04", Tiempo_Reaccion_ms: 225, Sobrevivido_s: 78.5 },
-            { ID_Paciente: "Sujeto #201", Edad: 28, Categoria_Edad: "Adulto", Multiplicador_Velocidad: 1.0, DangerZone_ID: "DZ-05", Tiempo_Reaccion_ms: 240, Sobrevivido_s: 78.5 },
+      { ID_Paciente: "Sujeto #205", Edad: 71, Categoria_Edad: "Anciano", Multiplicador_Velocidad: 0.7, DangerZone_ID: "DZ-01", Tiempo_Reaccion_ms: 420, Sobrevivido_s: 32.1 },
+      { ID_Paciente: "Sujeto #205", Edad: 71, Categoria_Edad: "Anciano", Multiplicador_Velocidad: 0.7, DangerZone_ID: "DZ-02", Tiempo_Reaccion_ms: 490, Sobrevivido_s: 32.1 },
+      { ID_Paciente: "Sujeto #205", Edad: 71, Categoria_Edad: "Anciano", Multiplicador_Velocidad: 0.7, DangerZone_ID: "DZ-03", Tiempo_Reaccion_ms: 580, Sobrevivido_s: 32.1 },
+      { ID_Paciente: "Sujeto #205", Edad: 71, Categoria_Edad: "Anciano", Multiplicador_Velocidad: 0.7, DangerZone_ID: "DZ-04", Tiempo_Reaccion_ms: 670, Sobrevivido_s: 32.1 },
+      { ID_Paciente: "Sujeto #205", Edad: 71, Categoria_Edad: "Anciano", Multiplicador_Velocidad: 0.7, DangerZone_ID: "DZ-05", Tiempo_Reaccion_ms: 780, Sobrevivido_s: 32.1 }
+    ];
 
-            // Paciente 205 - Anciano
-            { ID_Paciente: "Sujeto #205", Edad: 71, Categoria_Edad: "Anciano", Multiplicador_Velocidad: 0.7, DangerZone_ID: "DZ-01", Tiempo_Reaccion_ms: 420, Sobrevivido_s: 32.1 },
-            { ID_Paciente: "Sujeto #205", Edad: 71, Categoria_Edad: "Anciano", Multiplicador_Velocidad: 0.7, DangerZone_ID: "DZ-02", Tiempo_Reaccion_ms: 490, Sobrevivido_s: 32.1 },
-            { ID_Paciente: "Sujeto #205", Edad: 71, Categoria_Edad: "Anciano", Multiplicador_Velocidad: 0.7, DangerZone_ID: "DZ-03", Tiempo_Reaccion_ms: 580, Sobrevivido_s: 32.1 },
-            { ID_Paciente: "Sujeto #205", Edad: 71, Categoria_Edad: "Anciano", Multiplicador_Velocidad: 0.7, DangerZone_ID: "DZ-04", Tiempo_Reaccion_ms: 670, Sobrevivido_s: 32.1 },
-            { ID_Paciente: "Sujeto #205", Edad: 71, Categoria_Edad: "Anciano", Multiplicador_Velocidad: 0.7, DangerZone_ID: "DZ-05", Tiempo_Reaccion_ms: 780, Sobrevivido_s: 32.1 }
-        ];
+    let activeRawData = [...initialDataset];
+    let selectedPatientId = "";
+    let fatigueChartInstance = null;
 
-        let activeRawData = [...ChristianUE5Dataset];
-        let selectedPatientId = "ALL";
-        let categoryFilter = "ALL";
+    window.addEventListener('DOMContentLoaded', () => {
+      initCharts();
+      populatePatientDropdown();
+      renderDashboard();
+    });
 
-        let reactionChartInstance = null;
-        let survivalChartInstance = null;
+    // ARCHIVO Y LECTURA DE CSV
+    function handleFileUpload(event) {
+      const file = event.target.files ? event.target.files[0] : null;
+      if (!file) return;
 
-        // INICIALIZACIÓN
-        window.addEventListener('DOMContentLoaded', () => {
-            initCharts();
-            populatePatientDropdown();
-            renderDashboard();
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const parsed = parseUE5TelemetryCSV(e.target.result);
+        if (parsed.length > 0) {
+          // MODIFICACIÓN APLICADA AQUÍ: Concatenar datos de muestra con los datos cargados del CSV
+          activeRawData = [...initialDataset, ...parsed];
+          populatePatientDropdown();
+          // Selecciona por defecto el primer paciente cargado
+          const select = document.getElementById('patientSelect');
+          if (select.options.length > 1) {
+            select.selectedIndex = 1;
+            selectedPatientId = select.value;
+            document.getElementById('selectedPatientBadge').innerText = selectedPatientId;
+          }
+          renderDashboard();
+        } else {
+          alert("No se pudieron parsear datos válidos del CSV cargado.");
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    // PARSER HÍBRIDO (SOPORTA CLAVE-VALOR Y TABULAR DE UE5)
+    function parseUE5TelemetryCSV(csvText) {
+      if (!csvText || !csvText.trim()) return [];
+
+      const lines = csvText.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+      if (lines.length === 0) return [];
+
+      // Detectar si el archivo viene en formato Clave-Valor línea por línea (Name: Saul...)
+      const isKeyValueFormat = lines.some(line => /^name\s*:/i.test(line));
+
+      return isKeyValueFormat ? parseKeyValueUE5(lines) : parseTabularUE5(lines);
+    }
+
+    // 1. Parser para Formato Clave-Valor de UE5
+    function parseKeyValueUE5(lines) {
+      let pId = 'Sujeto #1';
+      let age = 0;
+      let category = 'Adulto';
+      let survivalTime = 0;
+      let zones = [];
+
+      lines.forEach(line => {
+        const cleanLine = line.replace(/,+$|#.*|\/\/.*/g, '').trim();
+        if (!cleanLine) return;
+
+        const lower = cleanLine.toLowerCase();
+
+        if (lower.startsWith('name:')) {
+          pId = cleanLine.split(':')[1].trim() || pId;
+        } else if (lower.startsWith('age:')) {
+          const ageVal = cleanLine.split(':')[1].trim();
+          if (!isNaN(parseInt(ageVal))) {
+            age = parseInt(ageVal);
+            category = age < 18 ? "Niño" : (age >= 60 ? "Anciano" : "Adulto");
+          } else {
+            category = ageVal;
+          }
+        } else if (lower.startsWith('survivaltime:')) {
+          const timeStr = cleanLine.split(':')[1].replace('s', '').trim();
+          survivalTime = parseFloat(timeStr) || 0;
+        } else if (lower.startsWith('average per zone:')) {
+          const zonesData = cleanLine.replace(/^average per zone:/i, '');
+          const pairs = zonesData.split(',');
+
+          pairs.forEach(pair => {
+            const parts = pair.split(':');
+            if (parts.length >= 2) {
+              const dz = parts[0].trim();
+              const rtVal = parseFloat(parts[1].replace('s', '').trim());
+              if (dz && !isNaN(rtVal)) {
+                const rtMs = rtVal < 10.0 ? Math.round(rtVal * 1000) : Math.round(rtVal);
+                zones.push({ dz, rtMs });
+              }
+            }
+          });
+        }
+      });
+
+      return zones.map(z => ({
+        ID_Paciente: pId,
+        Edad: age,
+        Categoria_Edad: category,
+        Multiplicador_Velocidad: 1.0,
+        DangerZone_ID: z.dz,
+        Tiempo_Reaccion_ms: z.rtMs,
+        Sobrevivido_s: survivalTime
+      }));
+    }
+
+    // 2. Parser Tabular tradicional
+    function parseTabularUE5(lines) {
+      let headerIndex = 0;
+      for (let i = 0; i < lines.length; i++) {
+        if (lines[i] && !lines[i].startsWith('#') && !lines[i].startsWith('//')) {
+          headerIndex = i;
+          break;
+        }
+      }
+
+      const delimiter = lines[headerIndex].includes(';') ? ';' : ',';
+      const regexDelimiter = new RegExp(`${delimiter}(?=(?:(?:[^"]*"){2})*[^"]*$)`);
+
+      const headers = lines[headerIndex]
+        .split(regexDelimiter)
+        .map(h => h.trim().replace(/^["']|["']$/g, '').toLowerCase().replace(/[\s\-_]+/g, ''));
+
+      const parsedData = [];
+
+      for (let i = headerIndex + 1; i < lines.length; i++) {
+        const currentLine = lines[i];
+        if (!currentLine || currentLine.startsWith('#') || currentLine.startsWith('//')) continue;
+
+        const values = currentLine.split(regexDelimiter);
+        const row = {};
+
+        headers.forEach((header, index) => {
+          if (values[index] !== undefined) {
+            row[header] = values[index].trim().replace(/^["']|["']$/g, '');
+          }
         });
 
-        function loadSimulatedData() {
-            activeRawData = [...ChristianUE5Dataset];
-            selectedPatientId = "ALL";
-            categoryFilter = "ALL";
-            document.getElementById('ageCategoryFilter').value = 'ALL';
-            populatePatientDropdown();
-            renderDashboard();
-        }
-
-        // POPULATE PATIENT DROPDOWN
-        function populatePatientDropdown() {
-            const select = document.getElementById('patientSelect');
-            select.innerHTML = '<option value="ALL">-- TODOS LOS PACIENTES (VISTA GENERAL) --</option>';
-
-            // Get unique patients
-            const uniquePatients = {};
-            activeRawData.forEach(item => {
-                if (!uniquePatients[item.ID_Paciente]) {
-                    uniquePatients[item.ID_Paciente] = {
-                        id: item.ID_Paciente,
-                        age: item.Edad,
-                        category: item.Categoria_Edad
-                    };
-                }
-            });
-
-            Object.values(uniquePatients).forEach(p => {
-                const opt = document.createElement('option');
-                opt.value = p.id;
-                opt.innerText = `${p.id} - ${p.category} (${p.age} años)`;
-                select.appendChild(opt);
-            });
-
-            select.value = selectedPatientId;
-        }
-
-        function onPatientSelectChange() {
-            selectedPatientId = document.getElementById('patientSelect'),value;
-            document.getElementById('selectedPatientBadge').innerText =
-                selectedPatientId === "ALL" ? "TODOS LOS PACIENTES" : selectedPatientId;
-            renderDashboard();
-        }
-
-        function resetPatientFilter() {
-            selectedPatientId = "ALL";
-            document.getElementById('patientSelect').value = "ALL";
-            document.getElementById('selectedPatientBadge').innerText = "TODOS LOS PACIENTES";
-            renderDashboard();
-        }
-
-        function applyCategoryFilter() {
-            categoryFilter = document.getElementById('ageCategoryFilter').value;
-            renderDashboard();
-        }
-
-         // FILTER DATA ACCORDING TO STATE
-        function getFilteredData() {
-            return activeRawData.filter(d => {
-                const matchPatient = (selectedPatientId === "ALL" || d.ID_Paciente === selectedPatientId);
-                const matchCategory = (categoryFilter === "ALL" || d.Categoria_Edad === categoryFilter);
-                return matchPatient && matchCategory;
-            });
-        }
-
-        // RENDERIZAR VISTAS Y MÉTRICAS
-        function renderDashboard() {
-            const currentData = getFilteredData();
-            updateKPIs(currentData);
-            updateTable(currentData);
-            updateCharts(currentData);
-        }
-
-        // CÁLCULO DE TELEMETRÍA ROBUSTA
-        function updateKPIs(data) {
-            if (!data.length) {
-                document.getElementById('statTotalPatients').innerText = '0';
-                document.getElementById('statAvgReaction').innerText = '0 ms';
-                document.getElementById('statAvgSurvival').innerText = '0.0s';
-                document.getElementById('statFatigueIndex').innerText = '0%';
-                return;
-            }
-
-            if (selectedPatientId === "ALL") {
-                const uniqueP = new Set(data.map(d => d.ID_Paciente)).size;
-                document.getElementById('statTotalPatient').innerText = uniqueP;
-                document.getElementById('statPatientSub').innerText = "Pacientes activos en dataset";
-            } else {
-                const first = data[0];
-                document.getElementById('statTotalPatients').innerText = first.ID_Paciente;
-                document.getElementById('statPatientSub').innerText = `${first.Categoria_Edad} (${first.Edad}a) • Mult ${first.Multiplicador_Velocidad}x`
-            }
-
-            // Average Reaction Time
-            const avgRt = Math.round(data.reduce((acc, c) => acc + c.Tiempo_Reaccion_ms, 0) / data.length);
-            document.getElementById('statAvgReaction').innerText = `${avgRt} ms`;
-            document.getElementById('statRtSub').innerText = `Equivalente a ${(avgRt/1000).toFixed(2)}s de latencia`;
-
-            // Average Survival
-            const uniqueSurv = [];
-            const seenP = new Set();
-            data.forEach(d => {
-                if (!seenP.has(d.ID_Paciente)) {
-                    seenP.add(d.ID_Paciente);
-                    uniqueSurv.push(d.Sobrevivido_s);
-                }
-            });
-            const avgSurv = (uniqueSurv.reduce((a, b) => a + b, 0) / (uniqueSurv.length || 1)).toFixed(1);
-            document.getElementById('statAvgSurvival').innerText = `${avgSurv}s`;
-
-            // Fatigue Index Calculation (DZ1 vs Last DZ)
-            const dz1Points = data.filter(d => d.DangerZone_ID === "DZ-01");
-            const dzMaxPoints = data.filter(d => d.DangerZone_ID === "DZ-05" || d.DangerZone_ID === "DZ-04");
-
-            if (dz1Points.length && dzMaxPoints.length) {
-                const avgDZ1 = dz1Points.reduce((a, b) => a + b.Tiempo_Reaccion_ms, 0) / dz1Points.length;
-                const avgDZMax = dzMaxPoints.reduce((a, b) => a + b.Tiempo_Reaccion_ms, 0) / dzMaxPoints.length;
-                const fatiguePct = Math.round(((avgDZMax - avgDZ1) / avgDZ1) * 100);
-
-                document.getElementById('statFatigueIndex').innerText = `${fatiguePct > 0 ? '+' : ''}${fatiguePct}%`;
-                document.getElementById('statFatigueSub').innerText = fatiguePct > 20 ? 'Degradación significativa' : 'Desempeño motor estable';
-            } else {
-                document.getElementById('statFatigueIndex').innerText = '0%';
-                document.getElementById('statFatigueSub').innerText = "Zonas insuficientes";
-            }
-        }
-
-        // ACTUALIZACIÓN DE TABLA HTML
-        function updateTable(data) {
-            const tbody = document.getElementById('telemetryTableBody');
-            tbody.innerHTML = '';
-
-            if (!data.length) {
-                tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-gray-500 font-mono">No existen registros que coincidan con los filtros actuales.</td></tr>`;
-                return;
-            }
-
-            data.forEach(row => {
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-[#32527B]/20 transition-colors border-b border-gray-800/50";
-
-                const badgeColor = row.Categoria_Edad === 'Niño' ? 'text-blue-400 bg-blue-950/60 border-blue-500/30' :
-                                  row.Categoria_Edad === 'Adulto' ? 'text-yellow-400 bg-yellow-950/60 border-yellow-500/30' :
-                                  'text-purple-400 bg-purple-950/60 border-purple-500/30';
-                tr.innerHTML = `
-                    <td class="p-2.5 font-bold text-cyan-300">${row.ID_Paciente}</td>
-                    <td class="p-2.5">${row.Edad} años</td>
-                    <td class="p-2.5"><span class="px-2 py-0.5 rounded border text-[10px] ${badgeColor}">${row.Categoria_Edad}</span></td>
-                    <td class="p-2.5 text-gray-400">${row.Multiplicador_Velocidad}x</td>
-                    <td class="p-2.5 text-yellow-300 font-bold">${row.DangerZone_ID}</td>
-                    <td class="p-2.5 font-bold ${row.Tiempo_Reaccion_ms > 450 ? 'text-red-400' : 'text-green-400'}">${row.Tiempo_Reaccion_ms} ms (${(row.Tiempo_Reaccion_ms/1000).toFixed(2)}s)</td>
-                    <td class="p-2.5 text-white">${row.Sobrevivido_s}s</td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        // CONFIGURACIÓN DE GRÁFICAS (Chart.js)
-        function initCharts() {
-            Chart.defaults.font.family = "'Orbitron', sans-serif";
-            Chart.defaults.color = '#9CA3AF';
-
-            const ctx1 = document.getElementById('fatigueTimelineChart').getContext('2d');
-            reactionChartInstance = new Chart(ctx1, {
-                type: 'line',
-                data: { labels: [], datasets: [] },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { labels: { color: '#FDCC0D' } },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return `Latencia ${context.raw} ms (${(context.raw/1000).toFixed(2)}s)`;
-                            }
-                        }
-                    },
-                    scales: {
-                        y: { 
-                            grid: { color: 'rgba(255,255,255,0.06)' },
-                            title: { display: true, text: 'Latencia RT (ms)', color: '#FDCC0D', font: { size: 11 } }
-                        },
-                        x: {
-                            grid: { color: 'rgba(255,255,255,0.06)' },
-                            title: { display: true, text: 'Danger Zones (UE5 Level)', color: '#00FFFF', font: { size: 11 } }
-                        }
-                    }
-                }
-            });
-
-            const ctx2 = document.getElementById('demographicChart').getContext('2d');
-            demographicChartInstance = new Chart(ctx2, {
-                type: 'bar',
-                data: { labels: [], datasets: [] },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { labels: { color: '#FDCC0D', font: { size: 10 } } }
-                    },
-                    scales: {
-                        y: { 
-                            grid: { color: 'rgba(255,255,255,0.06)' },
-                            title: { display: true, text: 'Tiempo Reacción Medio (ms)', color: '#9CA3AF', font: { size: 11 } }
-                        },
-                        x: { grid: { color: 'rgba(255,255,255,0.06)' } }
-                    }
-                }
-            });
-        }
-
-        function updateCharts(data) {
-            // Actualizar Chart 1: Línea de tiempo de fatigo
-            const zones = ["DZ-01", "DZ-02", "DZ-03", "DZ-04", "DZ-05"];
-
-            if (selectedPatientId !== "ALL") {
-                // Línea Singular del Fatigo del Paciente
-                const pData = data.filter(d => d.ID_Paciente === selectedPatientId);
-                const latencies = zone.map(z => {
-                    const match = pData.find(d => d.DangerZone_ID === z);
-                    return match ? match.Tiempo_Reaccion_ms : null;
-                });
-
-                fatigueChartInstance.data = {
-                    labels: zones,
-                    datasets: [{
-                        label: `${selectedPatientId} Latencia de Fatiga (ms)`,
-                        data: latencies,
-                        borderColor: '#00FFFF',
-                        backgroundColor: 'rgba(0, 255, 255, 0.15)',
-                        fill: true,
-                        tension: 0.35,
-                        pointBackgroundColor: '#FDCC0D',
-                        pointRadius: 6,
-                        borderWidth: 3
-                    }]
-                };
-            } else {
-                // Group Averages by Category for Fatigue
-                const categories = ["Niño", "Adulto", "Anciano"];
-                const colors = { "Niño": "#38BDF8", "Adulto": "#FACC15", "Anciano": "#C084FC" };
-                
-                const datasets = categories.map(cat => {
-                    const catData = data.filter(d => d.Categoria_Edad === cat);
-                    const avgLatencias = zones.map(z => {
-                        const zPts = catData.filter(d => d.DangerZone_ID === z);
-                        if (!zPts.length) return null;
-                        return Math.round(zPts.reduce((a, b) => a + b.Tiempo_Reaccion_ms, 0) / zPts.length);
-                    });
-
-                    return {
-                        label: `Grupo ${cat}`,
-                        data: avgLatencias,
-                        borderColor: colors[cat],
-                        backgroundColor: colors[cat] + "22",
-                        tension: 0.3,
-                        pointRadius: 4,
-                        borderWidth: 2
-                    };
-                });
-
-                fatigueChartInstance.data = { labels: zones, datasets: datasets };
-            }
-            fatigueChartInstance.update();
-
-            // Actualizar Chart 2: Demograficas
-            if (selectedPatientId !== "ALL") {
-                // Show Danger Zones Breakdown for this Patient as Bars
-                const pData = data.filter(d => d.ID_Paciente === selectedPatientId);
-                fatigueChartInstance;
-
-                demographicChartInstance.data = {
-                    labels: zones,
-                    datasets: [{
-                        label: `Latencia Intra-Zona (${selectedPatientId})`,
-                        data: zones.map(z => {
-                            const m = pData.find(d => d.DangerZone_ID === z);
-                            return m ? m.Tiempo_Reaccion_ms : 0;
-                        }),
-                        backgroundColor: 'rgba(253, 204, 13, 0.75)',
-                        borderColor: '#FDCC0D',
-                        borderWidth: 1
-                    }]
-                };
-            } else {
-                //Show Category Comparison
-                const categories = ["Niño", "Adulto", "Anciano"];
-                const avgReactions = categories.map(cat => {
-                    const cPts = data.filter(d => d.Categoria_Edad === cat);
-                    if (!cPts.length) return 0;
-                    return Math.round(cPts.reduce((a, b) => a + b.Tiempo_Reaccion_ms, 0) / cPts.length);
-                });
-
-                demographicChartInstance.data = {
-                    labels: categories,
-                    datasets: [{
-                        label: 'Reacción Media Global (ms)',
-                        data: avgReactions,
-                        backgroundColor: ['rgba(56, 189, 248, 0.75)', 'rgba(250, 204, 21, 0.75)', 'rgba(192, 132, 252, 0.75)'],
-                        borderColor: ['#38BDF8', '#FACC15', '#C084FC'],
-                        borderWidth: 1
-                    }]
-                };
-            }
-            demographicChartInstance.update();
-        }
+        const pId = row.subjectid || row.patientid || row.idpaciente || row.id || row.playerid || `Sujeto #${i}`;
+        const age = parseInt(row.age || row.edad, 10) || 0;
         
-        // GENERACIÓN DE REPORTE CLINCO Y MODAL
-        function openClinicalReportModal() {
-            const modal = document.getElementById('reportModal');
-            modal.classList.remove('hidden');
-
-            const currentData = getFilteredData();
-            document.getElementById('reportDate').innerText = new Date().toLocaleDateString("es-ES");
-
-            let patientIdStr = "Consolidado Cohorte (Todos los Sujectos)";
-            let ageStr = "Mixto (Niños, Adultos, Ancianos)";
-            let multStr = "Varía (0.7x - 1.2x)";
-            let survivalStr = "N/A";
-
-            if (selectedPatientId !== "ALL" && currentData.length) {
-                const p = currentData[0];
-                patientIdStr = p.ID_Paciente;
-                ageStr = `${p.Edad} años (${p.Categoria_Edad})`;
-                multStr = `${p.Multiplicador_Velocidad}x`;
-                survivalStr `${p.Sobrevivido_s} seg`;
-            } else if (currentData.length) {
-                const totalSurv = new Set();
-                currentData.forEach(d => totalSurv.add(d.Sobrevivido_s));
-                const sum = Array.from(totalSurv).reduce((a, b) => a + b, 0);
-                survivalStr = `${(sum / (totalSurv.size || 1)).toFixed(1)} seg (Promedio)`;
-            }
-
-            document.getElementById('reportPatientId').innerText = patientIdStr;
-            document.getElementById('reportPatientAge').innerText = ageStr;
-            document.getElementById('reportMultiplier').innerText = multStr;
-            document.getElementById('reportSurvival').innerText = survivalStr;
-
-            // Quatitative Metrics
-            const dz1 = currentData.filter(d => d.DangerZone_ID === "DZ-01");
-            const dzLast = currentData.filter(d => d.DangerZone_ID === "DZ-05" || d.DangerZone_ID === "DZ-04");
-            
-            const avgDZ1 = dz1.length ? Math.round(dz1.reduce((a, b) => a + b.Tiempo_Reaccion_ms, 0) / dz1.length) : 0;
-            const avgDZLast = dzLast.length ? Math.round(dzLast.reduce((a, b) => a + b.Tiempo_Reaccion_ms, 0) / dzLast.length) : 0;
-            const degPct = avgDZ1 ? Math.round(((avgDZLast - avgDZ1) / avgDZ1) * 100) : 0;
-
-            document.getElementById('reportRtInitial').innerText = `${avgDZ1} ms (${(avgDZ1/1000).toFixed(2)}s)`;
-            document.getElementById('reportRtMax').innerText = `${avgDZLast} ms (${(avgDZLast/1000).toFixed(2)}s)`;
-            document.getElementById('reportDegradation').innerText = `${degPct > 0 ? '+' : ''}${degPct}%`;
-
-            // Logica de Generación de Nota Diagnostíco
-            let note = "";
-            if (selectedPatientId !== "ALL") {
-                const p = currentData[0];
-                note = `El paciente <b>${p.ID_Paciente}</b> (${p.Categoria_Edad}, ${p.Edad} años) ejecutó la prueba bajo un multiplicador de velocidad de <b>${p.Multiplicador_Velocidad}x</b>. `;
-
-                if (degPct > 25) {
-                    note += `Se evidenció una <b>degradación significativa del ${degPct}% en el tiempo de respuesta</b> al transicionar desde la primera zona de peligro (DZ-01: ${avgDZ1}ms) hasta la zona final (DZ-05: ${avgDZLast}ms). Este patrón es un indicador clínico directo de <b>fatiga cognitiva acumulada e inhibición psicomotora sostenida</b>. Se sugiere ajustar la carga adaptativa en Unreal Engine a un multiplicador menor o espaciar los intervalos de peligro.`;
-                } else if (degPct > 10) {
-                    note += `El sujeto presentó una leve atenuación del <b>${degPct}%</b> en la latencia psicomotora (de ${(avgDZ1/1000).toFixed(2)}s a ${(avgDZLast/1000).toFixed(2)}s). El nivel de tolerancia neuromuscular se mantiene dentro del rango adaptativo esperado para la categoría ${p.Categoria_Edad}.`;
-                } else {
-                    note += `El rendimiento atencional del sujeto permaneció altamente estable a lo largo de todas las Danger Zones, registrando variaciones despreciables. Muestra alta resiliencia motora bajo dificultad ${p.Multiplicador_Velocidad}x.`;
-                }
-            } else {
-                `Análisis agregado de la cohorte clínica. La muestra consolidada evidencia que el grupo de <b>Niños</b> experimenta mayor variabilidad latente bajo multiplicador 1.2x, mientras que los <b>Adultos Mayores</b> se benefician de la velocidad adaptada a 0.7x. La tasa promedio global de degradación por fatiga en la zona superior de peligro fue de <b>${degPct}%</b>.`;
-            }
-
-            document.getElementById('reportDiagnosticNote').innerHTML = note;
-
-            // Añadir datos a la tabla de reporte
-            const reportTbody = document.getElementById('reportZoneTableBody');
-            reportTbody.innerHTML = '';
-
-            const zones = ["DZ-01", "DZ-02", "DZ-03", "DZ-04", "DZ-05"];
-            zones.forEach(z => {
-                const zData = currentData.filter(d => d.DangerZone_ID === z);
-                if (zData.length) {
-                    const avgMs = Math.round(zData.reduce((a, b) => a + b.Tiempo_Reaccion_ms, 0) / zData.length);
-                    const avgSec = (avgMs/1000).toFixed(2);
-                    const status = avgMs > 500 ? '🔴 Fatiga Severa' : avgMs > 300 ? '🟡 Fatiga Moderada' : '🟢 Óptimo';
-
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td class="p-2 font-bold">${z}</td>
-                        <td class="p-2">${avgMs} ms</td>
-                        <td class="p-2">${avgSec} s</td>
-                        <td class="p-2">${status}</td>
-                    `;
-                    reportTbody.appendChild('tr');
-                }
-            });
+        let category = row.categoriaedad || row.category || row.agegroup || "Adulto";
+        if (age > 0) {
+          if (age < 18) category = "Niño";
+          else if (age >= 60) category = "Anciano";
+          else category = "Adulto";
         }
 
-        function closeClinicalReportModal() {
-            document.getElementById('reportModal').classList.add('hidden');
+        let rtRaw = parseFloat(row.rt || row.tiemporeaccionms || row.reactiontime || row.reactiontimems || row.latency || 0);
+        if (isNaN(rtRaw) || rtRaw <= 0) continue;
+
+        let rtMs = rtRaw < 10.0 ? Math.round(rtRaw * 1000) : Math.round(rtRaw);
+
+        parsedData.push({
+          ID_Paciente: pId,
+          Edad: age,
+          Categoria_Edad: category,
+          Multiplicador_Velocidad: parseFloat(row.multiplier || row.multiplicadorvelocidad || 1.0),
+          DangerZone_ID: row.dangerzoneid || row.zona || row.dangerzone || `DZ-0${i}`,
+          Tiempo_Reaccion_ms: rtMs,
+          Sobrevivido_s: parseFloat(row.survivaltime || row.sobrevividos || 0)
+        });
+      }
+
+      return parsedData;
+    }
+
+    // CÁLCULO DE MÉTRICAS NEUROLÓGICAS AVANZADAS
+    function calculateNeuroMetrics(trials, lapseThresholdMs = 500) {
+      if (!trials || trials.length === 0) return null;
+
+      const rtValues = trials.map(t => t.Tiempo_Reaccion_ms);
+      const n = rtValues.length;
+
+      const mean = rtValues.reduce((acc, val) => acc + val, 0) / n;
+      const variance = rtValues.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / (n > 1 ? n - 1 : 1);
+      const sd = Math.sqrt(variance);
+
+      const lapses = rtValues.filter(rt => rt > lapseThresholdMs).length;
+      const lapsePercentage = ((lapses / n) * 100).toFixed(1);
+
+      let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+      rtValues.forEach((y, x) => {
+        sumX += x;
+        sumY += y;
+        sumXY += x * y;
+        sumXX += x * x;
+      });
+      const slope = n > 1 ? ((n * sumXY) - (sumX * sumY)) / ((n * sumXX) - (sumX * sumX)) : 0;
+
+      return {
+        meanRT: Math.round(mean),
+        sdRT: Math.round(sd),
+        attentionalLapses: lapses,
+        lapseRate: `${lapsePercentage}%`,
+        fatigueSlope: slope.toFixed(1),
+      };
+    }
+
+    function loadSimulatedData() {
+      activeRawData = [...initialDataset];
+      populatePatientDropdown();
+      renderDashboard();
+    }
+
+    function populatePatientDropdown() {
+      const select = document.getElementById('patientSelect');
+      select.innerHTML = '<option value="">-- Seleccione al paciente --</option>';
+      
+      const uniquePatients = {};
+      activeRawData.forEach(item => {
+        if (!uniquePatients[item.ID_Paciente]) {
+          uniquePatients[item.ID_Paciente] = { id: item.ID_Paciente, age: item.Edad, category: item.Categoria_Edad };
         }
+      });
 
-        // PARSER CSV INTERNO - ADAPTADO PARA ATRIBUTOS DE CHRISTIAN (UNREAL ENGINE 5)
-        // Soporta: ID_Paciente, Edad, Categoria_Edad, Multiplicador_Velocidad, DangerZone_ID, Tiempo_Reaccion_ms, Sobrevivido_s
-        function handleFileUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
+      const patientList = Object.values(uniquePatients);
+      patientList.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.innerText = `${p.id} - ${p.category} (${p.age}a)`;
+        select.appendChild(opt);
+      });
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                parseUE5CSVData(e.target.result);
-            };
-            reader.readAsText(file);
+      selectedPatientId = "";
+      select.value = "";
+      document.getElementById('selectedPatientBadge').innerText = "Ninguno";
+    }
+
+    function onPatientSelectChange() {
+      selectedPatientId = document.getElementById('patientSelect').value;
+      document.getElementById('selectedPatientBadge').innerText = selectedPatientId || "Ninguno";
+      renderDashboard();
+    }
+
+    function resetPatientFilter() {
+      const select = document.getElementById('patientSelect');
+      select.value = "";
+      selectedPatientId = "";
+      document.getElementById('selectedPatientBadge').innerText = "Ninguno";
+      renderDashboard();
+    }
+
+    function getFilteredData() {
+      if (!selectedPatientId) return [];
+      return activeRawData.filter(d => d.ID_Paciente === selectedPatientId);
+    }
+
+    function renderDashboard() {
+      const currentData = getFilteredData();
+      updateKPIs(currentData);
+      updateTable(currentData);
+      updateCharts(currentData);
+    }
+
+    function updateKPIs(data) {
+      if (!data.length) {
+        document.getElementById('statTotalPatients').innerText = "-";
+        document.getElementById('statPatientSub').innerText = 'Seleccione paciente';
+        document.getElementById('statAvgReaction').innerText = "0 ms";
+        document.getElementById('statRtSub').innerText = "Variabilidad (SD): ±0 ms";
+        document.getElementById('statLapses').innerText = "0";
+        document.getElementById('statLapseRate').innerText = "Tasa: 0% (>500ms)";
+        document.getElementById('statFatigueIndex').innerText = "+0 ms/DZ";
+        return;
+      }
+
+      const metrics = calculateNeuroMetrics(data);
+      const first = data[0];
+
+      document.getElementById('statTotalPatients').innerText = first.ID_Paciente;
+      document.getElementById('statPatientSub').innerText = `${first.Categoria_Edad} (${first.Edad}a)`;
+
+      document.getElementById('statAvgReaction').innerText = `${metrics.meanRT} ms`;
+      document.getElementById('statRtSub').innerText = `Variabilidad (SD): ±${metrics.sdRT} ms`;
+
+      document.getElementById('statLapses').innerText = metrics.attentionalLapses;
+      document.getElementById('statLapseRate').innerText = `Tasa Lapsos: ${metrics.lapseRate} (>500ms)`;
+
+      document.getElementById('statFatigueIndex').innerText = `${metrics.fatigueSlope >= 0 ? '+' : ''}${metrics.fatigueSlope} ms/DZ`;
+      document.getElementById('statFatigueSub').innerText = `Pendiente degradación (m)`;
+    }
+
+    function updateTable(data) {
+      const tbody = document.getElementById('telemetryTableBody');
+      tbody.innerHTML = '';
+
+      data.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-cyan-950/20 transition-colors border-b border-gray-800/50";
+        tr.innerHTML = `
+          <td class="p-2.5 font-bold text-cyan-300">${row.ID_Paciente}</td>
+          <td class="p-2.5">${row.Edad}a</td>
+          <td class="p-2.5 text-gray-400">${row.Multiplicador_Velocidad}x</td>
+          <td class="p-2.5 text-yellow-400 font-bold">${row.DangerZone_ID}</td>
+          <td class="p-2.5 ${row.Tiempo_Reaccion_ms > 500 ? 'text-red-400 font-bold' : 'text-gray-200'}">${row.Tiempo_Reaccion_ms} ms</td>
+          <td class="p-2.5 text-green-400">${row.Sobrevivido_s}s</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function initCharts() {
+      const ctxFatigue = document.getElementById('fatigueTimelineChart').getContext('2d');
+      fatigueChartInstance = new Chart(ctxFatigue, {
+        type: 'line',
+        data: { labels: [], datasets: [] },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#94A3B8' } },
+            y: { title: { display: true, text: 'Latencia (ms)', color: '#00FFFF' }, grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#94A3B8' }, min: 0, max: 1000 }
+          }
         }
+      });
+    }
 
-        function parseUE5CSVData(csvText) {
-            const lines = csvText.split(/\r\n|\n/).filter(l => l.trim() !== '');
-            if (lines.length < 2) return;
+    function updateCharts(data) {
+      const zones = [...new Set(data.map(d => d.DangerZone_ID))].sort();
+      
+      const patientRTs = zones.map(z => {
+        const filtered = data.filter(d => d.DangerZone_ID === z);
+        if (!filtered.length) return null;
+        return Math.round(filtered.reduce((a, b) => a + b.Tiempo_Reaccion_ms, 0) / filtered.length);
+      });
 
-            const headers = lines[0].split(',').map(h => h.trim().replace(/^["']|["']$/g, ''));
-            const parsed = [];
-
-            for (let i = 1; i < lines.length; i++) {
-                const cols = lines[i].split(',').map(c => c.trim().replace(/^["']|["']$/g, ''));
-                if (cols.length >= 5) {
-                    // Mapping dynamically
-                    const rowObj = {};
-                    headers.forEach((h, idx) => {
-                        rowObj[h] = cols[idx];
-                    });
-
-                    const pId = rowObj.ID_Paciente || rowObj.id || rowObj.user_id || `Sujeto #${100 + i}`;
-                    const age = parseInt(rowObj.Edad || rowObj.edad || rowObj.age || 25, 10);
-                    const cat = rowObj.Categoria_Edad || rowObj.grupo_edad || (age < 13 ? "Niño" : age < 60 ? "Adulto" : "Anciano");
-                    const mult = parseFloat(rowObj.Multiplicador_Velocidad || rowObj.multiplier || 1.0);
-                    const dz = rowObj.DangerZone_ID || rowObj.zona || `DZ-0${(i % 5) + 1}`;
-                    
-                    let rtMs = parseFloat(rowObj.Tiempo_Reaccion_ms || rowObj.tiempo_reaccion_ms || rowObj.rt || 300);
-                    // If RT was exported in seconds (< 10), convert to ms
-                    if (rtMs < 10) rtMs = Math.round(rtMs * 1000);
-
-                    const survS = parseFloat(rowObj.Sobrevivido_s || rowObj.tiempo_supervivencia_seg || rowObj.survival || 45.0);
-
-                    parsed.push({
-                        ID_Paciente: pId,
-                        Edad: age,
-                        Categoria_Edad: cat,
-                        Multiplicador_Velocidad: mult,
-                        DangerZone_ID: dz,
-                        Tiempo_Reaccion_ms: Math.round(rtMs),
-                        Sobrevivido_s: survS
-                    });
-                }
-            }
-
-            if (parsed.length > 0) {
-                activeRawData = parsed;
-                selectedPatientId = "ALL";
-                categoryFilter = "ALL";
-                document.getElementById('ageCategoryFilter').value = 'ALL';
-                populatePatientDropdown();
-                renderDashboard();
-            }
+      fatigueChartInstance.data.labels = zones;
+      fatigueChartInstance.data.datasets = [
+        {
+          label: 'RT Paciente (ms)',
+          data: patientRTs,
+          borderColor: '#00FFFF',
+          backgroundColor: 'rgba(0, 255, 255, 0.1)',
+          borderWidth: 3,
+          fill: true,
+          tension: 0.2
+        },
+        {
+          label: 'Línea Base Adulto (250ms)',
+          data: zones.map(() => 250),
+          borderColor: 'rgba(52, 211, 153, 0.6)',
+          borderWidth: 2,
+          borderDash: [5, 5],
+          pointRadius: 0
+        },
+        {
+          label: 'Umbral Lapso Atencional (500ms)',
+          data: zones.map(() => 500),
+          borderColor: 'rgba(239, 68, 68, 0.8)',
+          borderWidth: 2,
+          borderDash: [3, 3],
+          pointRadius: 0
         }
-    </script>
+      ];
+      fatigueChartInstance.update();
+    }
+
+    function openClinicalReportModal() {
+      const data = getFilteredData();
+      if (!data.length) {
+        alert("Por favor, seleccione un paciente válido para generar el reporte.");
+        return;
+      }
+
+      const metrics = calculateNeuroMetrics(data);
+      const first = data[0];
+
+      document.getElementById('reportPatientId').innerText = first.ID_Paciente;
+      document.getElementById('reportPatientAge').innerText = `${first.Edad}a (${first.Categoria_Edad})`;
+      document.getElementById('reportPatientSD').innerText = `±${metrics.sdRT} ms`;
+      document.getElementById('reportSurvival').innerText = `${first.Sobrevivido_s} s`;
+
+      document.getElementById('reportRtInitial').innerText = `${metrics.meanRT} ms`;
+      document.getElementById('reportLapses').innerText = `${metrics.attentionalLapses} (${metrics.lapseRate})`;
+      document.getElementById('reportSlope').innerText = `${metrics.fatigueSlope >= 0 ? '+' : ''}${metrics.fatigueSlope} ms/zona`;
+
+      let diag = "Perfil atencional dentro de parámetros regulares.";
+      if (metrics.attentionalLapses > 2 || parseFloat(metrics.fatigueSlope) > 40) {
+        diag = "⚠️ SEVERA SUSCEPTIBILIDAD A LA FATIGA Y/O LAPSOS ATENCIONALES DETECTADOS. Se sugiere evaluación neuropsicológica complementaria de la atención sustained.";
+      } else if (metrics.sdRT > 80) {
+        diag = "⚡ ALTA VARIABILIDAD INTRA-SUJETO (ISV). Muestra fluctuación de la concentración en tareas con aceleración de ritmo.";
+      }
+      document.getElementById('reportDiagnosticNote').innerText = diag;
+
+      document.getElementById('reportModal').classList.remove('hidden');
+    }
+
+    function closeClinicalReportModal() {
+      document.getElementById('reportModal').classList.add('hidden');
+    }
+
+    function downloadClinicalPDF() {
+      const element = document.getElementById('reportPrintArea');
+      const patientId = document.getElementById('reportPatientId').innerText;
+
+      const opt = {
+        margin: [0.4, 0.4, 0.4, 0.4],
+        filename: `Reporte_Clinico_${patientId.replace(/\s+/g, '_')}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, backgroundColor: '#0F172A' },
+        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+      };
+
+      html2pdf().set(opt).from(element).save();
+    }
+  </script>
 </body>
 </html>
